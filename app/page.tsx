@@ -123,27 +123,27 @@ export default function SeishinZAgent() {
 
   const quickActions = [
     {
-      title: 'Post about Gasback',
-      description: 'Share latest Gasback rewards data',
-      action: 'Create a tweet about the latest Gasback rewards on Shape Network. Include some statistics and encourage users to check their rewards.',
+      title: 'Post Gasback Tweet',
+      description: 'Post a tweet about Gasback rewards',
+      action: 'Post a tweet about the latest Gasback rewards on Shape Network',
       icon: TrendingUp,
     },
     {
-      title: 'NFT Collection Update',
-      description: 'Share trending NFT collections',
-      action: 'Get the latest NFT collection analytics from Shape Network and create an engaging tweet about trending collections.',
+      title: 'Post NFT Update',
+      description: 'Post about trending NFT collections',
+      action: 'Post a tweet about the latest NFT collection analytics from Shape Network',
       icon: BarChart3,
     },
     {
-      title: 'Engage with Mentions',
+      title: 'Reply to Mentions',
       description: 'Check and reply to mentions',
-      action: 'Check recent mentions of the SeishinZ account and reply to any relevant ones with helpful information.',
+      action: 'Check recent mentions and reply to any relevant ones',
       icon: MessageCircle,
     },
     {
-      title: 'Trending Topics',
-      description: 'Share crypto trends',
-      action: 'Get current trending topics on X and create a tweet about any crypto-related trends, connecting them to Shape Network.',
+      title: 'Post Trending Topics',
+      description: 'Post about crypto trends',
+      action: 'Post a tweet about current crypto trends on X',
       icon: Twitter,
     },
   ];
@@ -295,16 +295,16 @@ export default function SeishinZAgent() {
                     "Post a tweet about the latest Gasback rewards"
                   </button>
                   <button
-                    onClick={() => setInput("Check recent mentions and reply to any relevant ones")}
+                    onClick={() => setInput("Post a tweet about trending NFT collections from Shape Network")}
                     className="text-left text-blue-600 hover:text-blue-800 block"
                   >
-                    "Check and reply to mentions"
+                    "Post a tweet about trending NFT collections"
                   </button>
                   <button
-                    onClick={() => setInput("Get trending NFT collections from Shape Network and create a tweet")}
+                    onClick={() => setInput("Post a tweet about current crypto trends on X")}
                     className="text-left text-blue-600 hover:text-blue-800 block"
                   >
-                    "Share trending NFT collections"
+                    "Post a tweet about crypto trends"
                   </button>
                 </div>
               </div>

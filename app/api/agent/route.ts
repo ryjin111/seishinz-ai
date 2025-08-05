@@ -179,9 +179,41 @@ export async function POST(req: NextRequest) {
           } else {
             // Check if the response mentions any tools we should call
             const content = response.content.toLowerCase();
+            const userMessage = messages[messages.length - 1]?.content.toLowerCase() || '';
             
             let additionalData = '';
+            let toolResults = '';
             
+            // Check for Twitter posting requests
+            if (userMessage.includes('post') && userMessage.includes('tweet')) {
+              // Extract the tweet content from the AI response
+              const tweetContent = response.content;
+              if (tweetContent.length > 0) {
+                const tweetResult = await twitterClient.postTweet(tweetContent);
+                if (tweetResult.success) {
+                  toolResults += `\n\n✅ **Tweet Posted Successfully!**\nTweet ID: ${tweetResult.tweetId}\nView: https://x.com/seishinzinshape/status/${tweetResult.tweetId}`;
+                } else {
+                  toolResults += `\n\n❌ **Failed to post tweet:** ${tweetResult.error}`;
+                }
+              }
+            }
+            
+            // Check for reply requests
+            if (userMessage.includes('reply') && userMessage.includes('mention')) {
+              const mentionsResult = await twitterClient.getMentions();
+              if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions.length > 0) {
+                const latestMention = mentionsResult.mentions[0];
+                const replyContent = `Thanks for the mention! ${response.content}`;
+                const replyResult = await twitterClient.replyToTweet(latestMention.id, replyContent);
+                if (replyResult.success) {
+                  toolResults += `\n\n✅ **Replied to mention:** ${replyResult.tweetId}`;
+                } else {
+                  toolResults += `\n\n❌ **Failed to reply:** ${replyResult.error}`;
+                }
+              }
+            }
+            
+            // Add Shape Network data based on content
             if (content.includes('gasback') || content.includes('reward')) {
               const gasbackData = await shapeClient.getGasbackData();
               if (gasbackData.success) {
@@ -203,8 +235,8 @@ export async function POST(req: NextRequest) {
               }
             }
             
-            // Send the enhanced response - clean format
-            const finalContent = response.content + additionalData;
+            // Send the enhanced response with tool results
+            const finalContent = response.content + additionalData + toolResults;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: finalContent })}\n\n`));
           }
           
