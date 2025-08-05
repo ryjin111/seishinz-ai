@@ -388,7 +388,7 @@ export async function POST(req: NextRequest) {
                 
                 const replyResult = await twitterClient.replyToTweet(tweetIdToReplyTo, replyContent);
                 if (replyResult.success) {
-                  toolResults += `\n\n✅ **Posted this reply to your tweet:**\n\n"${replyContent}"\n\nKept it clean & minimal as requested. Let me know if you want any adjustments! 🔧`;
+                  toolResults += `\n\n✅ **Posted:** [View on X](https://twitter.com/seishinzinshape/status/${replyResult.tweetId})`;
                 } else {
                   toolResults += `\n\n❌ **Failed to reply:** ${replyResult.error}`;
                   console.error('Reply failed:', replyResult.details);
