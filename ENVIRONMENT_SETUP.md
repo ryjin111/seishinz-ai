@@ -21,6 +21,10 @@ SHAPE_MCP_URL=https://shape-mcp-server.vercel.app/mcp
 # Optional: Alchemy API for additional blockchain data
 ALCHEMY_API_KEY=your_alchemy_api_key_here
 
+# Database Configuration (Optional - uses local storage by default)
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
 # Optional: Redis URL for caching (if using)
 REDIS_URL=your_redis_url_here
 
@@ -68,7 +72,21 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 3. Create a new app
 4. Copy the API key to `ALCHEMY_API_KEY`
 
-### 5. Redis URL
+### 5. Database Configuration
+**Optional - For persistent learning and memory**
+
+#### Supabase (Recommended)
+1. Visit [Supabase](https://supabase.com/)
+2. Create a free account and new project
+3. Go to Settings > API
+4. Copy the URL to `SUPABASE_URL`
+5. Copy the anon key to `SUPABASE_ANON_KEY`
+
+#### Local Storage (Default)
+- If no database is configured, ShinZ will use browser localStorage
+- Data persists between sessions but is limited to the browser
+
+### 6. Redis URL
 **Optional - For caching**
 
 - Only needed if you want to implement caching

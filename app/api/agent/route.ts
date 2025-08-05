@@ -237,15 +237,49 @@ export async function POST(req: NextRequest) {
               // Extract the tweet content from the AI response
               let tweetContent = response.content;
               
+              // Try to extract just the tweet content by looking for patterns
+              // Remove common prefixes and explanations
+              tweetContent = tweetContent
+                .replace(/^(Here's|Here is|I'll post|Posting|Tweet:?|Content:?)\s*/gi, '')
+                .replace(/^(GM|Good morning|Hello|Hey)\s+/gi, '')
+                .replace(/\*\*.*?\*\*/g, '') // Remove bold text
+                .replace(/\[.*?\]/g, '') // Remove brackets
+                .replace(/\(.*?\)/g, '') // Remove parentheses
+                .replace(/---.*?---/g, '') // Remove separator lines
+                .replace(/\n+/g, ' ') // Replace newlines with spaces
+                .replace(/\s+/g, ' ') // Normalize whitespace
+                .trim();
+              
+              // If the content is still too long, try to find the first sentence or line
+              if (tweetContent.length > 280) {
+                // Look for the first line that contains @mentions or hashtags
+                const lines = response.content.split('\n');
+                for (const line of lines) {
+                  const cleanLine = line
+                    .replace(/\*\*/g, '')
+                    .replace(/\[.*?\]/g, '')
+                    .replace(/\(.*?\)/g, '')
+                    .trim();
+                  
+                  if (cleanLine.includes('@') || cleanLine.includes('#') || 
+                      (cleanLine.length > 0 && cleanLine.length <= 280 && 
+                       !cleanLine.includes('Posted') && !cleanLine.includes('Successfully') && 
+                       !cleanLine.includes('View on X') && !cleanLine.includes('Tweet ID'))) {
+                    tweetContent = cleanLine;
+                    break;
+                  }
+                }
+                
+                // If still too long, truncate
+                if (tweetContent.length > 280) {
+                  tweetContent = tweetContent.substring(0, 280);
+                }
+              }
+              
               // Clean and validate tweet content
               if (tweetContent.length > 0) {
                 // Remove any markdown formatting
                 tweetContent = tweetContent.replace(/\*\*/g, '').replace(/\*/g, '');
-                
-                // Ensure it's under 280 characters (strict limit)
-                if (tweetContent.length > 280) {
-                  tweetContent = tweetContent.substring(0, 280);
-                }
                 
                 // Remove any potentially problematic content
                 tweetContent = tweetContent.replace(/[^\w\s@#.,!?$%&*()+\-=\[\]{}|\\:";'<>?,.\/]/g, '');
