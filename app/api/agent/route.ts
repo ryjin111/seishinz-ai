@@ -187,8 +187,23 @@ export async function POST(req: NextRequest) {
             // Check for Twitter posting requests
             if (userMessage.includes('post') && userMessage.includes('tweet')) {
               // Extract the tweet content from the AI response
-              const tweetContent = response.content;
+              let tweetContent = response.content;
+              
+              // Clean and validate tweet content
               if (tweetContent.length > 0) {
+                // Remove any markdown formatting
+                tweetContent = tweetContent.replace(/\*\*/g, '').replace(/\*/g, '');
+                
+                // Ensure it's under 280 characters (strict limit)
+                if (tweetContent.length > 280) {
+                  tweetContent = tweetContent.substring(0, 280);
+                }
+                
+                // Remove any potentially problematic content
+                tweetContent = tweetContent.replace(/[^\w\s@#.,!?$%&*()+\-=\[\]{}|\\:";'<>?,.\/]/g, '');
+                
+                console.log('Posting tweet:', tweetContent);
+                
                 const tweetResult = await twitterClient.postTweet(tweetContent);
                 if (tweetResult.success) {
                   toolResults += `\n\n✅ **Tweet Posted Successfully!**\nTweet ID: ${tweetResult.tweetId}\nView: https://x.com/seishinzinshape/status/${tweetResult.tweetId}`;
