@@ -194,6 +194,9 @@ export async function POST(req: NextRequest) {
                   toolResults += `\n\n✅ **Tweet Posted Successfully!**\nTweet ID: ${tweetResult.tweetId}\nView: https://x.com/seishinzinshape/status/${tweetResult.tweetId}`;
                 } else {
                   toolResults += `\n\n❌ **Failed to post tweet:** ${tweetResult.error}`;
+                  if (tweetResult.details) {
+                    toolResults += `\n\n**Error Details:** ${JSON.stringify(tweetResult.details, null, 2)}`;
+                  }
                 }
               }
             }

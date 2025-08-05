@@ -16,11 +16,25 @@ export class SeishinZTwitterClient {
   // Post a tweet
   async postTweet(content: string) {
     try {
+      console.log('Attempting to post tweet:', content.substring(0, 50) + '...');
+      console.log('Twitter client initialized:', !!this.client);
+      
       const tweet = await this.client.v2.tweet(content);
+      console.log('Tweet posted successfully:', tweet.data.id);
       return { success: true, tweetId: tweet.data.id, text: tweet.data.text };
     } catch (error) {
       console.error('Error posting tweet:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: (error as any)?.code,
+        status: (error as any)?.status,
+        data: (error as any)?.data
+      });
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: (error as any)?.data || error
+      };
     }
   }
 
