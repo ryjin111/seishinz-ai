@@ -1,9 +1,10 @@
 'use client';
 
-import { Send, Twitter, TrendingUp, MessageCircle, BarChart3, Copy, Check, Bot, User, Sparkles, Zap, Brain, Database } from 'lucide-react';
+import { Send, Twitter, TrendingUp, MessageCircle, BarChart3, Copy, Check, Bot, User, Sparkles, Zap, Brain, Database, Key, Shield, Crown, Eye } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import PersonalityDisplay from '@/components/PersonalityDisplay';
 import LearningDashboard from '@/components/LearningDashboard';
+import { accessCodeManager } from '@/lib/access-codes';
 
 interface Message {
   id: string;
@@ -18,6 +19,9 @@ export default function SeishinZAgent() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [accessError, setAccessError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -187,9 +191,89 @@ export default function SeishinZAgent() {
   ];
 
   const handleQuickAction = (action: string) => {
+    // Check if user has permission to use quick actions
+    if (!accessCodeManager.canPerformAction('useQuickActions')) {
+      setAccessError('Access code required to use quick actions. Please enter an access code.');
+      setShowAccessModal(true);
+      return;
+    }
+    
     setInput(action);
     setActiveTab('chat');
     setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const handleAccessCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAccessError('');
+    
+    if (accessCodeManager.setAccessCode(accessCode)) {
+      setShowAccessModal(false);
+      setAccessCode('');
+      // Add success message to chat
+      const currentAccess = accessCodeManager.getCurrentAccessCode();
+      if (currentAccess) {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `🔓 **Access Granted!**\n\n${currentAccess.description}\n\nYou now have access to SeishinZ Agent features!`,
+          timestamp: new Date(),
+        }]);
+      }
+    } else {
+      setAccessError('Invalid access code. Please try again.');
+    }
+  };
+
+  const getAccessStatus = () => {
+    const currentAccess = accessCodeManager.getCurrentAccessCode();
+    const usageStats = accessCodeManager.getUsageStats();
+    
+    if (!currentAccess) {
+      return { status: 'No Access', color: 'text-red-500', icon: Shield };
+    }
+    
+    switch (currentAccess.type) {
+      case 'nft_holder':
+        return { status: 'NFT Holder', color: 'text-green-500', icon: Crown };
+      case 'admin':
+        return { status: 'Admin', color: 'text-purple-500', icon: Crown };
+      case 'viewer':
+        return { status: 'Viewer', color: 'text-blue-500', icon: Eye };
+      case 'restricted':
+        return { status: 'Guest', color: 'text-yellow-500', icon: Shield };
+      default:
+        return { status: 'Unknown', color: 'text-gray-500', icon: Shield };
+    }
+  };
+
+  const AccessStatusDisplay = ({ onShowModal }: { onShowModal: () => void }) => {
+    const accessStatus = getAccessStatus();
+    const usageStats = accessCodeManager.getUsageStats();
+    const StatusIcon = accessStatus.icon;
+    
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <StatusIcon className={`w-4 h-4 ${accessStatus.color}`} />
+          <span className={`text-sm font-medium ${accessStatus.color}`}>
+            {accessStatus.status}
+          </span>
+        </div>
+        {usageStats.accessCode !== 'None' && (
+          <div className="text-xs text-gray-500 space-y-1">
+            <div>Tweets: {usageStats.tweetsPosted}/{usageStats.accessCode === 'ADMIN2024' ? '∞' : usageStats.remainingTweets + usageStats.tweetsPosted}</div>
+            <div>Replies: {usageStats.repliesSent}/{usageStats.accessCode === 'ADMIN2024' ? '∞' : usageStats.remainingReplies + usageStats.repliesSent}</div>
+          </div>
+        )}
+        <button
+          onClick={onShowModal}
+          className="w-full text-xs text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          {usageStats.accessCode === 'None' ? 'Enter Access Code' : 'Change Access Code'}
+        </button>
+      </div>
+    );
   };
 
   const formatTime = (date: Date) => {
@@ -259,11 +343,11 @@ export default function SeishinZAgent() {
             </button>
           </nav>
 
-          {/* Footer */}
+          {/* Access Status */}
           <div className="p-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500">
-              Powered by Shape Network
-            </div>
+            <AccessStatusDisplay 
+              onShowModal={() => setShowAccessModal(true)}
+            />
           </div>
         </div>
 
@@ -458,6 +542,62 @@ export default function SeishinZAgent() {
           )}
         </div>
       </div>
+
+      {/* Access Code Modal */}
+      {showAccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <Key className="w-6 h-6 text-blue-600" />
+              <h2 className="text-xl font-semibold text-gray-900">Enter Access Code</h2>
+            </div>
+            
+            <form onSubmit={handleAccessCodeSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Access Code
+                </label>
+                <input
+                  type="text"
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value)}
+                  placeholder="Enter your access code..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+              
+              {accessError && (
+                <div className="text-red-600 text-sm">{accessError}</div>
+              )}
+              
+              <div className="text-xs text-gray-600 space-y-1">
+                <div><strong>Available Codes:</strong></div>
+                <div>• <strong>SHINZ2024</strong> - NFT Holder (Full access + X posting)</div>
+                <div>• <strong>VIEWER2024</strong> - Viewer (Interface only, NO X posting)</div>
+                <div>• <strong>GUEST2024</strong> - Guest (Read-only, NO X posting)</div>
+                <div>• <strong>ADMIN2024</strong> - Admin (Unlimited access)</div>
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Enter Code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAccessModal(false)}
+                  className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

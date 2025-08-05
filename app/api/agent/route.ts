@@ -5,6 +5,7 @@ import { DeepSeekClient } from '@/lib/deepseek-client';
 import { SimpleShapeClient } from '@/lib/shape-mcp-simple';
 import { enhancedLearning } from '@/lib/enhanced-learning';
 import { shinZDB } from '@/lib/database';
+import { accessCodeManager } from '@/lib/access-codes';
 
 export const maxDuration = 30;
 
@@ -106,7 +107,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages, accessCode } = await req.json();
+    
+    // Set access code if provided
+    if (accessCode) {
+      accessCodeManager.setAccessCode(accessCode);
+    }
     
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ 
@@ -283,7 +289,12 @@ export async function POST(req: NextRequest) {
             
             // Check for Twitter posting requests
             if (currentUserMessage.includes('post') && currentUserMessage.includes('tweet')) {
-              // Extract the tweet content from the AI response
+              // Check if user has permission to post tweets
+              if (!accessCodeManager.canPerformAction('postTweet')) {
+                const restrictionMessage = accessCodeManager.getRestrictionMessage();
+                toolResults += `\n\n${restrictionMessage}`;
+              } else {
+                // Extract the tweet content from the AI response
               let tweetContent = response.content;
               
               // Try to extract just the tweet content by looking for patterns
@@ -346,6 +357,7 @@ export async function POST(req: NextRequest) {
                 }
               }
             }
+          }
             
             // Check for tweet URLs and reply requests
             const tweetIdInMessage = extractTweetId(currentUserMessage);

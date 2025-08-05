@@ -45,12 +45,12 @@ export default function LearningDashboard() {
           }
         };
         
-        setInsights(data);
+    setInsights(data);
       } catch (error) {
         console.error('Error loading insights:', error);
         setInsights(null);
       } finally {
-        setLoading(false);
+    setLoading(false);
       }
     };
     
@@ -182,7 +182,7 @@ export default function LearningDashboard() {
           <div className="space-y-2">
             {memories.nftKnowledge.slice(0, 5).map((memory: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                <div>
+            <div>
                   <span className="text-sm font-medium text-gray-700">
                     {memory.value.nftId || 'Unknown NFT'}
                   </span>
@@ -194,9 +194,9 @@ export default function LearningDashboard() {
                   {Math.round(memory.confidence * 100)}% confidence
                 </span>
               </div>
-            ))}
-          </div>
-        </div>
+                ))}
+              </div>
+            </div>
       )}
 
       {/* Market Patterns */}
@@ -209,7 +209,7 @@ export default function LearningDashboard() {
           <div className="space-y-2">
             {memories.marketPatterns.slice(0, 5).map((memory: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-2 bg-purple-50 rounded">
-                <div>
+            <div>
                   <span className="text-sm font-medium text-gray-700">
                     {memory.value.topic || 'Unknown Topic'}
                   </span>
@@ -273,7 +273,7 @@ export default function LearningDashboard() {
                     'bg-gray-100 text-gray-800'
                   }`}>
                     {interaction.context.sentiment}
-                  </span>
+                </span>
                 </div>
                 <p className="text-xs text-gray-500 truncate">
                   {interaction.message.substring(0, 100)}...
