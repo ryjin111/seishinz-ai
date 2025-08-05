@@ -3,7 +3,8 @@ import { SeishinZTwitterClient } from '@/lib/twitter';
 import { PersonalityEngine, SEISHINZ_PERSONALITY } from '@/lib/ai-personality';
 import { DeepSeekClient } from '@/lib/deepseek-client';
 import { SimpleShapeClient } from '@/lib/shape-mcp-simple';
-import { AILearningSystem } from '@/lib/ai-learning';
+import { enhancedLearning } from '@/lib/enhanced-learning';
+import { shinZDB } from '@/lib/database';
 
 export const maxDuration = 30;
 
@@ -45,6 +46,27 @@ function extractIntent(message: string): string {
   return 'conversation';
 }
 
+function extractNFTMentions(message: string): string[] {
+  const nftPatterns = [
+    /seishinz/gi,
+    /shape network/gi,
+    /nft/gi,
+    /collection/gi,
+    /floor/gi,
+    /mint/gi
+  ];
+  
+  const mentions: string[] = [];
+  nftPatterns.forEach(pattern => {
+    const matches = message.match(pattern);
+    if (matches) {
+      mentions.push(...matches);
+    }
+  });
+  
+  return Array.from(new Set(mentions)); // Remove duplicates
+}
+
 export async function GET(req: NextRequest) {
   return new Response(JSON.stringify({ 
     message: "SeishinZ AI Agent API", 
@@ -84,7 +106,9 @@ export async function POST(req: NextRequest) {
     const twitterClient = new SeishinZTwitterClient();
     const shapeClient = new SimpleShapeClient();
     const personalityEngine = new PersonalityEngine(SEISHINZ_PERSONALITY);
-    const learningSystem = new AILearningSystem();
+    
+    // Initialize database and learning system
+    await shinZDB.initialize();
     const deepseekClient = new DeepSeekClient({
       apiKey: process.env.DEEPSEEK_API_KEY,
       model: 'deepseek-chat',
@@ -198,10 +222,10 @@ export async function POST(req: NextRequest) {
     const allTools = [...xTools, ...shapeTools];
 
     // Get recent context for learning
-    const recentContext = learningSystem.getRecentContext(3);
-    const contextMessages = recentContext.map(interaction => ({
+    const recentInteractions = await shinZDB.getRecentInteractions(3);
+    const contextMessages = recentInteractions.map(interaction => ({
       role: 'system' as const,
-      content: `Previous interaction: User asked "${interaction.userMessage}" and I responded about "${interaction.context.topic}"`
+      content: `Previous interaction: User asked "${interaction.message}" and I responded about "${interaction.context.topic}"`
     }));
 
     // Create messages for DeepSeek with learning context
@@ -342,17 +366,29 @@ export async function POST(req: NextRequest) {
             // Log the interaction for learning
             const isTweetPost = currentUserMessage.includes('post') && currentUserMessage.includes('tweet');
             
-            learningSystem.logInteraction({
-              userMessage: currentUserMessage,
-              aiResponse: finalContent,
-              action: isTweetPost ? 'tweet_posted' : 'conversation',
-              success: !finalContent.includes('❌'),
+            // Create interaction record for learning
+            const interaction = {
+              id: Date.now().toString(),
+              user_id: 'anonymous', // You can implement user identification later
+              message: currentUserMessage,
+              ai_response: finalContent,
               context: {
                 topic: extractTopic(currentUserMessage),
                 sentiment: analyzeSentiment(currentUserMessage),
-                userIntent: extractIntent(currentUserMessage),
+                intent: extractIntent(currentUserMessage),
+                nft_mentioned: extractNFTMentions(currentUserMessage),
               },
-            });
+              engagement: {
+                likes: 0,
+                retweets: 0,
+                replies: 0,
+                impressions: 0,
+              },
+              created_at: new Date(),
+            };
+            
+            // Learn from the interaction
+            await enhancedLearning.learnFromInteraction(interaction);
           }
           
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));

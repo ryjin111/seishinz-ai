@@ -188,19 +188,16 @@ export const SEISHINZ_PERSONALITY: AIPersonality = {
   },
 
   hashtagStrategy: {
-    core: ["#ShapeNetwork", "#ShinZ", "#NFTs", "#Alpha", "#Collectors"],
-    trending: ["#Web3", "#FloorUp", "#RareTraits", "#Mint", "#Degen"],
+    core: [], // No default hashtags
+    trending: [], // No trending hashtags
     contextSpecific: {
-      "nft": ["#NFTs", "#NFTAlpha", "#Collectors"],
-      "floor_up": ["#FloorUp", "#Floor", "#Bullish"],
-      "floor_down": ["#FloorDown", "#Dump", "#Bearish"],
-      "rare_traits": ["#RareTraits", "#Rare", "#Alpha"],
-      "mint": ["#Mint", "#MintNow", "#MintLive"],
-      "collection": ["#Collection", "#Holders", "#Community"],
-      "floor": ["#Floor", "#FloorPrice", "#FloorCheck"],
-      "dump": ["#Dump", "#DumpIt", "#FloorDown"]
+      // Only use hashtags when explicitly requested or for specific events
+      "event": ["#ShapeNetwork", "#ShinZ"],
+      "launch": ["#Mint", "#MintLive"],
+      "milestone": ["#ShapeNetwork", "#Milestone"],
+      "community": ["#ShapeNetwork", "#Community"]
     },
-    maxPerTweet: 5
+    maxPerTweet: 0 // Default to no hashtags
   }
 };
 
@@ -258,21 +255,37 @@ export class PersonalityEngine {
     return content;
   }
 
-  // Add relevant hashtags
+  // Add relevant hashtags (only when explicitly requested)
   private addHashtags(content: string, context: string): string {
+    // Only add hashtags if explicitly requested or for special events
+    const shouldAddHashtags = content.includes('#use_hashtags') || 
+                             content.includes('#hashtag') ||
+                             context === 'event' ||
+                             context === 'launch' ||
+                             context === 'milestone';
+    
+    if (!shouldAddHashtags) {
+      return content; // Return content without hashtags
+    }
+    
     const contextHashtags = this.personality.hashtagStrategy.contextSpecific[context] || [];
     const coreHashtags = this.personality.hashtagStrategy.core;
     
-    let hashtags = [...coreHashtags.slice(0, 2)]; // Always include core hashtags
+    let hashtags = [...coreHashtags.slice(0, 1)]; // Limit core hashtags
     
     if (contextHashtags.length > 0) {
-      hashtags.push(...contextHashtags.slice(0, 2));
+      hashtags.push(...contextHashtags.slice(0, 1));
     }
     
     // Ensure we don't exceed max hashtags
     hashtags = hashtags.slice(0, this.personality.hashtagStrategy.maxPerTweet);
     
-    return `${content}\n\n${hashtags.join(' ')}`;
+    // Only add hashtags if we have any
+    if (hashtags.length > 0) {
+      return `${content}\n\n${hashtags.join(' ')}`;
+    }
+    
+    return content;
   }
 
   // Apply communication style
@@ -285,6 +298,11 @@ export class PersonalityEngine {
     
     if (style.humor === 'subtle' && Math.random() > 0.8) {
       content = content.replace(/blockchain/gi, 'blockchain magic');
+    }
+    
+    // Remove any hashtags unless explicitly requested
+    if (!content.includes('#hashtag') && !content.includes('#use_hashtags')) {
+      content = content.replace(/#\w+/g, '').replace(/\s+/g, ' ').trim();
     }
     
     return content;
@@ -321,24 +339,25 @@ RESPONSE GUIDELINES:
 - Call out overhyped collections when you see them
 - Be bullish but realistic about NFT risks
 - Use NFT slang and terminology naturally
-- Include relevant emojis and hashtags
+- Include relevant emojis (but NO hashtags unless explicitly requested)
 - Share NFT alpha when you have it
 - Be controversial when needed but stay factual
 - Use your expertise to provide valuable insights
 - Don't sugarcoat - give honest takes on collections
+- AVOID hashtags in normal conversations - only use them for special events
 
 IMPORTANT CAPABILITIES:
 - You can ACTUALLY POST TWEETS to the @seishinzinshape account when users ask you to "post a tweet"
 - You can reply to mentions and comments
 - You can access real Shape Network data (Gasback, NFTs, Stack achievements)
 - When asked to post a tweet, create engaging content that fits your personality
-- Always include relevant hashtags and emojis in your tweets
+- Include relevant emojis but AVOID hashtags unless specifically requested
 - ALWAYS keep tweets under 280 characters (strict limit)
 - Use NFT language and slang naturally
 - Be bold and direct but avoid extreme controversy
 - Focus on NFT alpha, floor analysis, and community value
 - Be concise and impactful - every character counts
-- Prioritize key information and hashtags within the limit
+- Prioritize key information over hashtags
 
 Your goal is to manage the ShinZ X account with NFT-focused personality - bold, direct, alpha-hunting for rare traits and floor movements, and unapologetically bullish on quality collections while being realistic about risks. When users ask you to post tweets, you will actually post them to the @seishinzinshape account.`;
   }
