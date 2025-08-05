@@ -227,11 +227,11 @@ export class AccessCodeManager {
 
   getRestrictionMessage(): string {
     if (!this.currentAccessCode) {
-      return '🔒 **Access Required**\n\nPlease enter an access code to use SeishinZ Agent.\n\n**Available Codes:**\n• SHINZ2024 - NFT Holder (Full access)\n• VIEWER2024 - Viewer (Interface only, no X posting)\n• GUEST2024 - Guest (Read-only)\n• ADMIN2024 - Admin (Unlimited)';
+      return '🔒 **Access Required**\n\nPlease enter an access code to use SeishinZ Agent.\n\nContact the administrator for access codes.';
     }
 
     if (!this.currentAccessCode.permissions.canPostTweets) {
-      return '🔒 **X Posting Restricted**\n\nYour access code does not allow posting to X. You can still:\n• Use the chat interface\n• Check replies and mentions\n• Get Shape Network data\n• View AI personality and learning\n\n**To unlock X posting:** Use SHINZ2024 (NFT Holder) or ADMIN2024 (Admin) access code.';
+      return '🔒 **X Posting Restricted**\n\nYour access code does not allow posting to X. You can still:\n• Use the chat interface\n• Check replies and mentions\n• Get Shape Network data\n• View AI personality and learning\n\nContact the administrator to upgrade your access level.';
     }
 
     return '';

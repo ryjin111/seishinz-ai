@@ -19,7 +19,7 @@ export default function SeishinZAgent() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [showAccessModal, setShowAccessModal] = useState(true); // Show immediately
   const [accessCode, setAccessCode] = useState('');
   const [accessError, setAccessError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -266,12 +266,14 @@ export default function SeishinZAgent() {
             <div>Replies: {usageStats.repliesSent}/{usageStats.accessCode === 'ADMIN2024' ? '∞' : usageStats.remainingReplies + usageStats.repliesSent}</div>
           </div>
         )}
-        <button
-          onClick={onShowModal}
-          className="w-full text-xs text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          {usageStats.accessCode === 'None' ? 'Enter Access Code' : 'Change Access Code'}
-        </button>
+        {usageStats.accessCode === 'None' && (
+          <button
+            onClick={onShowModal}
+            className="w-full text-xs text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            Enter Access Code
+          </button>
+        )}
       </div>
     );
   };
@@ -549,7 +551,7 @@ export default function SeishinZAgent() {
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
             <div className="flex items-center gap-3 mb-4">
               <Key className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Enter Access Code</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Access Required</h2>
             </div>
             
             <form onSubmit={handleAccessCodeSubmit} className="space-y-4">
@@ -561,7 +563,7 @@ export default function SeishinZAgent() {
                   type="text"
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value)}
-                  placeholder="Enter your access code..."
+                  placeholder="Enter access code..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   autoFocus
                 />
@@ -572,11 +574,7 @@ export default function SeishinZAgent() {
               )}
               
               <div className="text-xs text-gray-600 space-y-1">
-                <div><strong>Available Codes:</strong></div>
-                <div>• <strong>SHINZ2024</strong> - NFT Holder (Full access + X posting)</div>
-                <div>• <strong>VIEWER2024</strong> - Viewer (Interface only, NO X posting)</div>
-                <div>• <strong>GUEST2024</strong> - Guest (Read-only, NO X posting)</div>
-                <div>• <strong>ADMIN2024</strong> - Admin (Unlimited access)</div>
+                <div><strong>Contact the administrator for access codes.</strong></div>
               </div>
               
               <div className="flex gap-3">
@@ -590,6 +588,7 @@ export default function SeishinZAgent() {
                   type="button"
                   onClick={() => setShowAccessModal(false)}
                   className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                  disabled
                 >
                   Cancel
                 </button>

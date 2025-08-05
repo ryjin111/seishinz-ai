@@ -341,8 +341,11 @@ export async function POST(req: NextRequest) {
                 // Remove any markdown formatting
                 tweetContent = tweetContent.replace(/\*\*/g, '').replace(/\*/g, '');
                 
-                // Remove any potentially problematic content
+                // Remove any potentially problematic content (but keep quotes)
                 tweetContent = tweetContent.replace(/[^\w\s@#.,!?$%&*()+\-=\[\]{}|\\:";'<>?,.\/]/g, '');
+                
+                // Remove surrounding quotes if they exist
+                tweetContent = tweetContent.replace(/^["']|["']$/g, '');
                 
                 console.log('Posting tweet:', tweetContent);
                 
@@ -477,6 +480,9 @@ export async function POST(req: NextRequest) {
                   .replace(/\n+/g, ' ') // Replace newlines with spaces
                   .replace(/\s+/g, ' ') // Normalize whitespace
                   .trim();
+                
+                // Remove surrounding quotes if they exist
+                replyContent = replyContent.replace(/^["']|["']$/g, '');
                 
                 // If content is too long, truncate
                 if (replyContent.length > 280) {
