@@ -574,7 +574,7 @@ export default function SeishinZAgent() {
               )}
               
               <div className="text-xs text-gray-600 space-y-1">
-                <div><strong>Contact the administrator for access codes.</strong></div>
+                <div><strong>Contact me @clintmod111 for access codes.</strong></div>
               </div>
               
               <div className="flex gap-3">
