@@ -37,10 +37,10 @@ export default function PersonalityDisplay() {
         <div className="bg-blue-50 rounded-lg p-3 mb-4">
           <h5 className="font-medium text-blue-900 mb-2">Communication Style</h5>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div><span className="font-medium">Tone:</span> {personality.communicationStyle.tone}</div>
-            <div><span className="font-medium">Formality:</span> {personality.communicationStyle.formality}</div>
-            <div><span className="font-medium">Humor:</span> {personality.communicationStyle.humor}</div>
-            <div><span className="font-medium">Enthusiasm:</span> {personality.communicationStyle.enthusiasm}</div>
+            <div><span className="font-medium text-gray-900">Tone:</span> <span className="text-gray-700">{personality.communicationStyle.tone}</span></div>
+            <div><span className="font-medium text-gray-900">Formality:</span> <span className="text-gray-700">{personality.communicationStyle.formality}</span></div>
+            <div><span className="font-medium text-gray-900">Humor:</span> <span className="text-gray-700">{personality.communicationStyle.humor}</span></div>
+            <div><span className="font-medium text-gray-900">Enthusiasm:</span> <span className="text-gray-700">{personality.communicationStyle.enthusiasm}</span></div>
           </div>
         </div>
       </div>
