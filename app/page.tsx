@@ -165,8 +165,6 @@ export default function SeishinZAgent() {
             <h1 className="text-3xl font-bold text-gray-900">SeishinZ X AI Agent</h1>
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Intelligent X account management powered by AI and Shape Network data. 
-            Post tweets, engage with followers, and share real-time blockchain insights.
           </p>
         </div>
 
