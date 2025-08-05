@@ -573,7 +573,7 @@ export default function SeishinZAgent() {
                 <div className="text-red-600 text-sm">{accessError}</div>
               )}
               
-              <div className="text-xs text-gray-600 space-y-1">
+              <div className="text-xs text-gray-900 space-y-1">
                 <div><strong>Contact me @clintmod111 for access codes.</strong></div>
               </div>
               
