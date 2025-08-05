@@ -190,17 +190,17 @@ export default function SeishinZAgent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
         {/* Sidebar */}
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
           {/* Logo */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                 <Twitter className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">SeishinZ AI</h1>
+              <h1 className="text-lg font-bold text-gray-900">SeishinZ AI</h1>
             </div>
           </div>
 
@@ -210,8 +210,8 @@ export default function SeishinZAgent() {
               onClick={() => setActiveTab('chat')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'chat'
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <MessageCircle className="w-4 h-4" />
@@ -221,8 +221,8 @@ export default function SeishinZAgent() {
               onClick={() => setActiveTab('quick')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'quick'
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Zap className="w-4 h-4" />
@@ -232,8 +232,8 @@ export default function SeishinZAgent() {
               onClick={() => setActiveTab('personality')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'personality'
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Sparkles className="w-4 h-4" />
@@ -243,8 +243,8 @@ export default function SeishinZAgent() {
               onClick={() => setActiveTab('learning')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'learning'
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Brain className="w-4 h-4" />
@@ -253,8 +253,8 @@ export default function SeishinZAgent() {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500">
               Powered by Shape Network
             </div>
           </div>
@@ -266,112 +266,112 @@ export default function SeishinZAgent() {
             /* Chat Interface */
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900">
+              <div className="flex-1 overflow-y-auto bg-white">
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Twitter className="w-8 h-8 text-white" />
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-2">
                         Welcome to SeishinZ AI
                       </h2>
-                      <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                      <p className="text-gray-600 max-w-md">
                         Your NFT-focused AI assistant. Ask me to post tweets, check mentions, or get Shape Network data.
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="max-w-4xl mx-auto">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`py-6 border-b border-gray-100 dark:border-gray-800 ${
-                          message.role === 'assistant' ? 'bg-gray-50 dark:bg-gray-800/50' : ''
-                        }`}
-                      >
-                        <div className="max-w-3xl mx-auto px-4">
-                          <div className="flex gap-4">
-                            <div className="flex-shrink-0">
-                              {message.role === 'user' ? (
-                                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                                  <User className="w-4 h-4 text-white" />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center">
-                                  <Bot className="w-4 h-4 text-white" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {message.role === 'user' ? 'You' : 'SeishinZ AI'}
-                                </span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {formatTime(message.timestamp)}
-                                </span>
-                                {message.role === 'assistant' && (
-                                  <button
-                                    onClick={() => copyMessage(message.content, message.id)}
-                                    className="ml-auto p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                                  >
-                                    {copiedMessageId === message.id ? (
-                                      <Check className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                      <Copy className="w-4 h-4" />
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                              <div className="prose prose-sm max-w-none dark:prose-invert">
-                                <div className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">
-                                  {message.content}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {isLoading && (
-                      <div className="py-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                        <div className="max-w-3xl mx-auto px-4">
-                          <div className="flex gap-4">
-                            <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center">
-                                <Bot className="w-4 h-4 text-white" />
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  SeishinZ AI
-                                </span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {formatTime(new Date())}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                <div className="flex space-x-1">
-                                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                </div>
-                                <span className="text-sm">Thinking...</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                                         {messages.map((message) => (
+                       <div
+                         key={message.id}
+                         className={`py-6 border-b border-gray-100 ${
+                           message.role === 'assistant' ? 'bg-gray-50' : ''
+                         }`}
+                       >
+                         <div className="max-w-3xl mx-auto px-4">
+                           <div className="flex gap-4">
+                             <div className="flex-shrink-0">
+                               {message.role === 'user' ? (
+                                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                                   <User className="w-4 h-4 text-white" />
+                                 </div>
+                               ) : (
+                                 <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center">
+                                   <Bot className="w-4 h-4 text-white" />
+                                 </div>
+                               )}
+                             </div>
+                             <div className="flex-1 min-w-0">
+                               <div className="flex items-center gap-2 mb-2">
+                                 <span className="font-medium text-gray-900">
+                                   {message.role === 'user' ? 'You' : 'SeishinZ AI'}
+                                 </span>
+                                 <span className="text-xs text-gray-500">
+                                   {formatTime(message.timestamp)}
+                                 </span>
+                                 {message.role === 'assistant' && (
+                                   <button
+                                     onClick={() => copyMessage(message.content, message.id)}
+                                     className="ml-auto p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                                   >
+                                     {copiedMessageId === message.id ? (
+                                       <Check className="w-4 h-4 text-green-500" />
+                                     ) : (
+                                       <Copy className="w-4 h-4" />
+                                     )}
+                                   </button>
+                                 )}
+                               </div>
+                               <div className="prose prose-sm max-w-none">
+                                 <div className="whitespace-pre-wrap text-gray-900">
+                                   {message.content}
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     ))}
+                                         {isLoading && (
+                       <div className="py-6 border-b border-gray-100 bg-gray-50">
+                         <div className="max-w-3xl mx-auto px-4">
+                           <div className="flex gap-4">
+                             <div className="flex-shrink-0">
+                               <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center">
+                                 <Bot className="w-4 h-4 text-white" />
+                               </div>
+                             </div>
+                             <div className="flex-1">
+                               <div className="flex items-center gap-2 mb-2">
+                                 <span className="font-medium text-gray-900">
+                                   SeishinZ AI
+                                 </span>
+                                 <span className="text-xs text-gray-500">
+                                   {formatTime(new Date())}
+                                 </span>
+                               </div>
+                               <div className="flex items-center gap-2 text-gray-600">
+                                 <div className="flex space-x-1">
+                                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                 </div>
+                                 <span className="text-sm">Thinking...</span>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     )}
                     <div ref={messagesEndRef} />
                   </div>
                 )}
               </div>
 
               {/* Input */}
-              <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+              <div className="border-t border-gray-200 bg-white p-4">
                 <div className="max-w-4xl mx-auto">
                   <form onSubmit={handleSubmit} className="relative">
                     <div className="relative">
@@ -381,7 +381,7 @@ export default function SeishinZAgent() {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         placeholder="Message SeishinZ AI..."
-                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white text-gray-900 placeholder-gray-500"
                         rows={1}
                         disabled={isLoading}
                       />
@@ -393,7 +393,7 @@ export default function SeishinZAgent() {
                         <Send className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="mt-2 text-xs text-gray-500">
                       Press Enter to send, Shift+Enter for new line
                     </div>
                   </form>
@@ -402,11 +402,11 @@ export default function SeishinZAgent() {
             </>
           ) : activeTab === 'quick' ? (
             /* Quick Actions */
-            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6">
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
               <div className="max-w-4xl mx-auto">
                 <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Quick Actions</h1>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">Quick Actions</h1>
+                  <p className="text-gray-600">
                     Execute common tasks with one click
                   </p>
                 </div>
@@ -414,7 +414,7 @@ export default function SeishinZAgent() {
                   {quickActions.map((action, index) => (
                     <div
                       key={index}
-                      className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                      className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
                       onClick={() => handleQuickAction(action.action)}
                     >
                       <div className="flex items-start gap-4">
@@ -422,9 +422,9 @@ export default function SeishinZAgent() {
                           <action.icon className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{action.title}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{action.description}</p>
-                          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          <h3 className="font-semibold text-gray-900 mb-2">{action.title}</h3>
+                          <p className="text-sm text-gray-600 mb-4">{action.description}</p>
+                          <div className="text-xs text-blue-600 font-medium">
                             Click to execute →
                           </div>
                         </div>
@@ -436,14 +436,14 @@ export default function SeishinZAgent() {
             </div>
           ) : activeTab === 'personality' ? (
             /* Personality Display */
-            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6">
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
               <div className="max-w-4xl mx-auto">
                 <PersonalityDisplay />
               </div>
             </div>
           ) : (
             /* Learning Dashboard */
-            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6">
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
               <div className="max-w-6xl mx-auto">
                 <LearningDashboard />
               </div>

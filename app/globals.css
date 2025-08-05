@@ -27,12 +27,7 @@ body {
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
   body {
-    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -47,15 +42,15 @@ body {
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-gray-800;
+    @apply bg-gray-100;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+    @apply bg-gray-300 rounded-full;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-500;
+    @apply bg-gray-400;
   }
 }
 
@@ -69,12 +64,12 @@ body {
   }
   
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6;
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
   }
   
   /* Modern input styles */
   .input-modern {
-    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200;
+    @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500 transition-all duration-200;
   }
   
   /* Message bubble styles */
@@ -87,7 +82,7 @@ body {
   }
   
   .message-assistant {
-    @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white;
+    @apply bg-gray-100 text-gray-900;
   }
   
   /* Loading animation */
@@ -128,65 +123,65 @@ body {
   
   /* Text selection */
   ::selection {
-    @apply bg-blue-200 dark:bg-blue-800;
+    @apply bg-blue-200;
   }
   
   /* Typography */
   .prose-custom {
-    @apply prose prose-sm max-w-none dark:prose-invert;
+    @apply prose prose-sm max-w-none;
   }
   
   .prose-custom h1 {
-    @apply text-2xl font-bold text-gray-900 dark:text-white mb-4;
+    @apply text-2xl font-bold text-gray-900 mb-4;
   }
   
   .prose-custom h2 {
-    @apply text-xl font-semibold text-gray-900 dark:text-white mb-3;
+    @apply text-xl font-semibold text-gray-900 mb-3;
   }
   
   .prose-custom h3 {
-    @apply text-lg font-medium text-gray-900 dark:text-white mb-2;
+    @apply text-lg font-medium text-gray-900 mb-2;
   }
   
   .prose-custom p {
-    @apply text-gray-700 dark:text-gray-300 mb-2;
+    @apply text-gray-700 mb-2;
   }
   
   .prose-custom ul {
-    @apply list-disc list-inside text-gray-700 dark:text-gray-300;
+    @apply list-disc list-inside text-gray-700;
   }
   
   .prose-custom ol {
-    @apply list-decimal list-inside text-gray-700 dark:text-gray-300;
+    @apply list-decimal list-inside text-gray-700;
   }
   
   .prose-custom code {
-    @apply bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-sm font-mono;
+    @apply bg-gray-100 px-1 py-0.5 rounded text-sm font-mono;
   }
   
   .prose-custom pre {
-    @apply bg-gray-100 dark:bg-gray-700 p-3 rounded-lg overflow-x-auto;
+    @apply bg-gray-100 p-3 rounded-lg overflow-x-auto;
   }
   
   .prose-custom blockquote {
-    @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400;
+    @apply border-l-4 border-blue-500 pl-4 italic text-gray-600;
   }
   
   .prose-custom a {
-    @apply text-blue-600 dark:text-blue-400 hover:underline;
+    @apply text-blue-600 hover:underline;
   }
   
   /* Animation classes */
   .fade-in {
-    @apply animate-in fade-in duration-300;
+    @apply opacity-0 animate-pulse;
   }
   
   .slide-in {
-    @apply animate-in slide-in-from-bottom-4 duration-300;
+    @apply transform translate-y-4 opacity-0 transition-all duration-300;
   }
   
   .scale-in {
-    @apply animate-in zoom-in-95 duration-200;
+    @apply transform scale-95 opacity-0 transition-all duration-200;
   }
   
   /* Responsive utilities */
@@ -194,8 +189,8 @@ body {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   
-  /* Dark mode transitions */
-  .dark-transition {
+  /* Transitions */
+  .smooth-transition {
     @apply transition-colors duration-200;
   }
 } 
