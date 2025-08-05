@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { SeishinZTwitterClient } from '@/lib/twitter';
 import { PersonalityEngine, SEISHINZ_PERSONALITY } from '@/lib/ai-personality';
 import { DeepSeekClient } from '@/lib/deepseek-client';
+import { SimpleShapeClient } from '@/lib/shape-mcp-simple';
 
 export const maxDuration = 30;
 
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
 
     // Initialize clients
     const twitterClient = new SeishinZTwitterClient();
+    const shapeClient = new SimpleShapeClient();
     const personalityEngine = new PersonalityEngine(SEISHINZ_PERSONALITY);
     const deepseekClient = new DeepSeekClient({
       apiKey: process.env.DEEPSEEK_API_KEY,
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Create custom tools for X functionality
-    const customTools = [
+    const xTools = [
       {
         name: 'post_tweet',
         description: 'Post a tweet to the SeishinZ X account',
@@ -112,6 +114,49 @@ export async function POST(req: NextRequest) {
       }
     ];
 
+    // Create Shape Network tools
+    const shapeTools = [
+      {
+        name: 'get_gasback_data',
+        description: 'Get Gasback rewards data from Shape Network',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'get_nft_analytics',
+        description: 'Get NFT collection analytics from Shape Network',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'get_stack_achievements',
+        description: 'Get Stack achievements and leaderboard data',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'get_chain_status',
+        description: 'Get Shape Network chain status and metrics',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      }
+    ];
+
+    // Combine all tools
+    const allTools = [...xTools, ...shapeTools];
+
     // Create messages for DeepSeek
     const deepseekMessages = [
       deepseekClient.createSystemMessage(personalityEngine.generateSystemPrompt()),
@@ -121,14 +166,47 @@ export async function POST(req: NextRequest) {
       }))
     ];
 
-    // Create a streaming response
+    // Create a streaming response with tool calling
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          await deepseekClient.streamChat(deepseekMessages, (chunk: string) => {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`));
-          });
+          // First, send the system message and user message
+          const response = await deepseekClient.chat(deepseekMessages);
+          
+          if (response.error) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: `Error: ${response.error}` })}\n\n`));
+          } else {
+            // Check if the response mentions any tools we should call
+            const content = response.content.toLowerCase();
+            
+            let additionalData = '';
+            
+            if (content.includes('gasback') || content.includes('reward')) {
+              const gasbackData = await shapeClient.getGasbackData();
+              if (gasbackData.success) {
+                additionalData += `\n\n📊 **Gasback Data:**\nTotal Rewards: ${gasbackData.data.totalRewards}\nAverage Reward: ${gasbackData.data.averageReward}\nTotal Users: ${gasbackData.data.totalUsers}`;
+              }
+            }
+            
+            if (content.includes('nft') || content.includes('collection')) {
+              const nftData = await shapeClient.getNFTCollectionAnalytics();
+              if (nftData.success) {
+                additionalData += `\n\n🎨 **NFT Collections:**\nSeishinZ Floor: ${nftData.data.collections[0].floorPrice}\nVolume: ${nftData.data.collections[0].volume}\nHolders: ${nftData.data.collections[0].holders}`;
+              }
+            }
+            
+            if (content.includes('stack') || content.includes('achievement')) {
+              const stackData = await shapeClient.getStackAchievements();
+              if (stackData.success) {
+                additionalData += `\n\n🏆 **Stack Achievements:**\n${stackData.data.achievements.length} achievements available\nTop user has ${stackData.data.leaderboard[0].points} points`;
+              }
+            }
+            
+            // Send the enhanced response
+            const finalContent = response.content + additionalData;
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: finalContent })}\n\n`));
+          }
           
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
