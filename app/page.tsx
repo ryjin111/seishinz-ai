@@ -8,7 +8,6 @@ import PersonalityDisplay from '@/components/PersonalityDisplay';
 export default function SeishinZAgent() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/agent',
-    maxSteps: 10,
   });
 
   const [activeTab, setActiveTab] = useState('chat');

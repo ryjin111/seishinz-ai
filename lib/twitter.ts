@@ -20,7 +20,7 @@ export class SeishinZTwitterClient {
       return { success: true, tweetId: tweet.data.id, text: tweet.data.text };
     } catch (error) {
       console.error('Error posting tweet:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
@@ -31,7 +31,7 @@ export class SeishinZTwitterClient {
       return { success: true, tweetId: reply.data.id, text: reply.data.text };
     } catch (error) {
       console.error('Error replying to tweet:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
@@ -42,7 +42,7 @@ export class SeishinZTwitterClient {
       return { success: true };
     } catch (error) {
       console.error('Error liking tweet:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
@@ -53,7 +53,7 @@ export class SeishinZTwitterClient {
       return { success: true };
     } catch (error) {
       console.error('Error retweeting:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
@@ -64,18 +64,18 @@ export class SeishinZTwitterClient {
       return { success: true, mentions: mentions.data };
     } catch (error) {
       console.error('Error getting mentions:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   // Get trending topics
   async getTrendingTopics(woeid: number = 1) { // 1 = worldwide
     try {
-      const trends = await this.client.v1.trendsPlace(woeid);
+      const trends = await this.client.v1.trendsByPlace(woeid);
       return { success: true, trends: trends[0].trends };
     } catch (error) {
       console.error('Error getting trends:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
@@ -89,7 +89,7 @@ export class SeishinZTwitterClient {
       return { success: true, tweets: tweets.data };
     } catch (error) {
       console.error('Error searching tweets:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 } 
