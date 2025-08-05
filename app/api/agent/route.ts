@@ -3,8 +3,47 @@ import { SeishinZTwitterClient } from '@/lib/twitter';
 import { PersonalityEngine, SEISHINZ_PERSONALITY } from '@/lib/ai-personality';
 import { DeepSeekClient } from '@/lib/deepseek-client';
 import { SimpleShapeClient } from '@/lib/shape-mcp-simple';
+import { AILearningSystem } from '@/lib/ai-learning';
 
 export const maxDuration = 30;
+
+// Helper functions for learning system
+function extractTopic(message: string): string {
+  const topics = ['gasback', 'nft', 'shape network', 'crypto', 'blockchain', 'defi', 'rewards'];
+  const lowerMessage = message.toLowerCase();
+  
+  for (const topic of topics) {
+    if (lowerMessage.includes(topic)) {
+      return topic;
+    }
+  }
+  return 'general';
+}
+
+function analyzeSentiment(message: string): 'positive' | 'negative' | 'neutral' {
+  const positiveWords = ['good', 'great', 'awesome', 'love', 'like', 'excellent', 'amazing'];
+  const negativeWords = ['bad', 'terrible', 'hate', 'dislike', 'awful', 'horrible'];
+  
+  const lowerMessage = message.toLowerCase();
+  
+  const positiveCount = positiveWords.filter(word => lowerMessage.includes(word)).length;
+  const negativeCount = negativeWords.filter(word => lowerMessage.includes(word)).length;
+  
+  if (positiveCount > negativeCount) return 'positive';
+  if (negativeCount > positiveCount) return 'negative';
+  return 'neutral';
+}
+
+function extractIntent(message: string): string {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('post') && lowerMessage.includes('tweet')) return 'post_tweet';
+  if (lowerMessage.includes('reply') || lowerMessage.includes('mention')) return 'reply_to_mention';
+  if (lowerMessage.includes('data') || lowerMessage.includes('get')) return 'get_data';
+  if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) return 'greeting';
+  
+  return 'conversation';
+}
 
 export async function GET(req: NextRequest) {
   return new Response(JSON.stringify({ 
@@ -45,6 +84,7 @@ export async function POST(req: NextRequest) {
     const twitterClient = new SeishinZTwitterClient();
     const shapeClient = new SimpleShapeClient();
     const personalityEngine = new PersonalityEngine(SEISHINZ_PERSONALITY);
+    const learningSystem = new AILearningSystem();
     const deepseekClient = new DeepSeekClient({
       apiKey: process.env.DEEPSEEK_API_KEY,
       model: 'deepseek-chat',
@@ -157,9 +197,17 @@ export async function POST(req: NextRequest) {
     // Combine all tools
     const allTools = [...xTools, ...shapeTools];
 
-    // Create messages for DeepSeek
+    // Get recent context for learning
+    const recentContext = learningSystem.getRecentContext(3);
+    const contextMessages = recentContext.map(interaction => ({
+      role: 'system' as const,
+      content: `Previous interaction: User asked "${interaction.userMessage}" and I responded about "${interaction.context.topic}"`
+    }));
+
+    // Create messages for DeepSeek with learning context
     const deepseekMessages = [
       deepseekClient.createSystemMessage(personalityEngine.generateSystemPrompt()),
+      ...contextMessages,
       ...messages.map((msg: any) => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content
@@ -179,13 +227,13 @@ export async function POST(req: NextRequest) {
           } else {
             // Check if the response mentions any tools we should call
             const content = response.content.toLowerCase();
-            const userMessage = messages[messages.length - 1]?.content.toLowerCase() || '';
+            const currentUserMessage = messages[messages.length - 1]?.content.toLowerCase() || '';
             
             let additionalData = '';
             let toolResults = '';
             
             // Check for Twitter posting requests
-            if (userMessage.includes('post') && userMessage.includes('tweet')) {
+            if (currentUserMessage.includes('post') && currentUserMessage.includes('tweet')) {
               // Extract the tweet content from the AI response
               let tweetContent = response.content;
               
@@ -217,7 +265,7 @@ export async function POST(req: NextRequest) {
             }
             
             // Check for reply requests
-            if (userMessage.includes('reply') && userMessage.includes('mention')) {
+            if (currentUserMessage.includes('reply') && currentUserMessage.includes('mention')) {
               const mentionsResult = await twitterClient.getMentions();
               if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions.length > 0) {
                 const latestMention = mentionsResult.mentions[0];
@@ -231,22 +279,22 @@ export async function POST(req: NextRequest) {
               }
             }
             
-            // Add Shape Network data based on content
-            if (content.includes('gasback') || content.includes('reward')) {
+            // Add Shape Network data only when user explicitly requests it with specific phrases
+            if (currentUserMessage.includes('get gasback data') || currentUserMessage.includes('show gasback') || currentUserMessage.includes('gasback stats') || currentUserMessage.includes('gasback information')) {
               const gasbackData = await shapeClient.getGasbackData();
               if (gasbackData.success) {
                 additionalData += `\n\n📊 **Gasback Data:**\nTotal Rewards: ${gasbackData.data.totalRewards}\nAverage Reward: ${gasbackData.data.averageReward}\nTotal Users: ${gasbackData.data.totalUsers}`;
               }
             }
             
-            if (content.includes('nft') || content.includes('collection')) {
+            if (currentUserMessage.includes('get nft data') || currentUserMessage.includes('show nft') || currentUserMessage.includes('nft stats') || currentUserMessage.includes('nft information') || currentUserMessage.includes('collection stats')) {
               const nftData = await shapeClient.getNFTCollectionAnalytics();
               if (nftData.success) {
                 additionalData += `\n\n🎨 **NFT Collections:**\nSeishinZ Floor: ${nftData.data.collections[0].floorPrice}\nVolume: ${nftData.data.collections[0].volume}\nHolders: ${nftData.data.collections[0].holders}`;
               }
             }
             
-            if (content.includes('stack') || content.includes('achievement')) {
+            if (currentUserMessage.includes('stack') || currentUserMessage.includes('achievement') || currentUserMessage.includes('get stack data')) {
               const stackData = await shapeClient.getStackAchievements();
               if (stackData.success) {
                 additionalData += `\n\n🏆 **Stack Achievements:**\n${stackData.data.achievements.length} achievements available\nTop user has ${stackData.data.leaderboard[0].points} points`;
@@ -256,6 +304,21 @@ export async function POST(req: NextRequest) {
             // Send the enhanced response with tool results
             const finalContent = response.content + additionalData + toolResults;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: finalContent })}\n\n`));
+
+            // Log the interaction for learning
+            const isTweetPost = currentUserMessage.includes('post') && currentUserMessage.includes('tweet');
+            
+            learningSystem.logInteraction({
+              userMessage: currentUserMessage,
+              aiResponse: finalContent,
+              action: isTweetPost ? 'tweet_posted' : 'conversation',
+              success: !finalContent.includes('❌'),
+              context: {
+                topic: extractTopic(currentUserMessage),
+                sentiment: analyzeSentiment(currentUserMessage),
+                userIntent: extractIntent(currentUserMessage),
+              },
+            });
           }
           
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));

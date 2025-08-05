@@ -3,6 +3,7 @@
 import { Send, Twitter, TrendingUp, MessageCircle, BarChart3 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import PersonalityDisplay from '@/components/PersonalityDisplay';
+import LearningDashboard from '@/components/LearningDashboard';
 
 interface Message {
   id: string;
@@ -202,6 +203,16 @@ export default function SeishinZAgent() {
             >
               AI Personality
             </button>
+            <button
+              onClick={() => setActiveTab('learning')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'learning'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Learning Insights
+            </button>
           </div>
         </div>
 
@@ -333,10 +344,15 @@ export default function SeishinZAgent() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : activeTab === 'personality' ? (
           /* Personality Display */
           <div className="max-w-4xl mx-auto">
             <PersonalityDisplay />
+          </div>
+        ) : (
+          /* Learning Dashboard */
+          <div className="max-w-6xl mx-auto">
+            <LearningDashboard />
           </div>
         )}
       </div>
