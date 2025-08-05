@@ -584,14 +584,7 @@ export default function SeishinZAgent() {
                 >
                   Enter Code
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAccessModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
-                  disabled
-                >
-                  Cancel
-                </button>
+               
               </div>
             </form>
           </div>
