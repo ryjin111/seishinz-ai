@@ -41,11 +41,25 @@ export class SeishinZTwitterClient {
   // Reply to a tweet
   async replyToTweet(tweetId: string, content: string) {
     try {
+      console.log('Attempting to reply to tweet:', tweetId);
+      console.log('Reply content:', content.substring(0, 50) + '...');
+      
       const reply = await this.client.v2.reply(content, tweetId);
+      console.log('Reply posted successfully:', reply.data.id);
       return { success: true, tweetId: reply.data.id, text: reply.data.text };
     } catch (error) {
       console.error('Error replying to tweet:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: (error as any)?.code,
+        status: (error as any)?.status,
+        data: (error as any)?.data
+      });
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: (error as any)?.data || error
+      };
     }
   }
 

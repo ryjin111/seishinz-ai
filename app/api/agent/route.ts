@@ -39,9 +39,18 @@ function extractIntent(message: string): string {
   const lowerMessage = message.toLowerCase();
   
   if (lowerMessage.includes('post') && lowerMessage.includes('tweet')) return 'post_tweet';
-  if (lowerMessage.includes('reply') || lowerMessage.includes('mention')) return 'reply_to_mention';
+  if (lowerMessage.includes('reply') || lowerMessage.includes('respond to')) return 'reply_to_tweet';
+  if (lowerMessage.includes('mention')) return 'reply_to_mention';
   if (lowerMessage.includes('data') || lowerMessage.includes('get')) return 'get_data';
   if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) return 'greeting';
+  
+  // Check if message contains a tweet URL
+  if (message.includes('twitter.com/') || message.includes('x.com/')) {
+    if (lowerMessage.includes('reply') || lowerMessage.includes('respond')) {
+      return 'reply_to_tweet';
+    }
+    return 'share_tweet';
+  }
   
   return 'conversation';
 }
@@ -65,6 +74,22 @@ function extractNFTMentions(message: string): string[] {
   });
   
   return Array.from(new Set(mentions)); // Remove duplicates
+}
+
+function extractTweetId(message: string): string | null {
+  // Try to extract tweet ID from X/Twitter URLs
+  const urlMatch = message.match(/https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
+  if (urlMatch) {
+    return urlMatch[1];
+  }
+  
+  // Try to extract tweet ID from the message (fallback)
+  const tweetIdMatch = message.match(/(\d{19,})/);
+  if (tweetIdMatch) {
+    return tweetIdMatch[1];
+  }
+  
+  return null;
 }
 
 export async function GET(req: NextRequest) {
@@ -322,19 +347,60 @@ export async function POST(req: NextRequest) {
               }
             }
             
-            // Check for reply requests
-            if (currentUserMessage.includes('reply') && currentUserMessage.includes('mention')) {
-              const mentionsResult = await twitterClient.getMentions();
-              if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions.length > 0) {
-                const latestMention = mentionsResult.mentions[0];
-                const replyContent = `Thanks for the mention! ${response.content}`;
-                const replyResult = await twitterClient.replyToTweet(latestMention.id, replyContent);
-                if (replyResult.success) {
-                  toolResults += `\n\n✅ **Replied to mention:** ${replyResult.tweetId}`;
-                } else {
-                  toolResults += `\n\n❌ **Failed to reply:** ${replyResult.error}`;
+            // Check for tweet URLs and reply requests
+            const tweetIdInMessage = extractTweetId(currentUserMessage);
+            
+            if (currentUserMessage.includes('reply') || currentUserMessage.includes('respond to')) {
+              let tweetIdToReplyTo: string | null = tweetIdInMessage;
+              
+              if (tweetIdToReplyTo) {
+                console.log('Extracted tweet ID:', tweetIdToReplyTo);
+              }
+              
+              // If no specific tweet ID, try to get latest mention
+              if (!tweetIdToReplyTo) {
+                const mentionsResult = await twitterClient.getMentions();
+                if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions.length > 0) {
+                  tweetIdToReplyTo = mentionsResult.mentions[0].id;
                 }
               }
+              
+              if (tweetIdToReplyTo) {
+                // Extract just the reply content from the AI response
+                let replyContent = response.content;
+                
+                // Clean up the response to get just the reply content
+                replyContent = replyContent
+                  .replace(/^(Here's|Here is|I'll post|Posting|Tweet:?|Content:?|Reply:?)\s*/gi, '')
+                  .replace(/^(GM|Good morning|Hello|Hey)\s+/gi, '')
+                  .replace(/\*\*.*?\*\*/g, '') // Remove bold text
+                  .replace(/\[.*?\]/g, '') // Remove brackets
+                  .replace(/\(.*?\)/g, '') // Remove parentheses
+                  .replace(/---.*?---/g, '') // Remove separator lines
+                  .replace(/\n+/g, ' ') // Replace newlines with spaces
+                  .replace(/\s+/g, ' ') // Normalize whitespace
+                  .trim();
+                
+                // If content is too long, truncate
+                if (replyContent.length > 280) {
+                  replyContent = replyContent.substring(0, 280);
+                }
+                
+                const replyResult = await twitterClient.replyToTweet(tweetIdToReplyTo, replyContent);
+                if (replyResult.success) {
+                  toolResults += `\n\n✅ **Posted this reply to your tweet:**\n\n"${replyContent}"\n\nKept it clean & minimal as requested. Let me know if you want any adjustments! 🔧`;
+                } else {
+                  toolResults += `\n\n❌ **Failed to reply:** ${replyResult.error}`;
+                  console.error('Reply failed:', replyResult.details);
+                }
+              } else {
+                toolResults += `\n\n❌ **No tweet found to reply to.** Please provide a tweet ID or mention.`;
+              }
+            }
+            
+            // If message contains a tweet URL but no reply request, offer to reply
+            if (tweetIdInMessage && !currentUserMessage.includes('reply') && !currentUserMessage.includes('respond to')) {
+              toolResults += `\n\n🔗 **I detected a tweet link in your message!**\n\nWant me to reply to this tweet? Just say "reply to this tweet" or "respond to this tweet" and I'll post a reply! 🚀`;
             }
             
             // Add Shape Network data only when user explicitly requests it with specific phrases
