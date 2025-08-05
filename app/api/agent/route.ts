@@ -350,11 +350,96 @@ export async function POST(req: NextRequest) {
             // Check for tweet URLs and reply requests
             const tweetIdInMessage = extractTweetId(currentUserMessage);
             
+            // Check if user wants to check for replies to AI's tweets
+            if (currentUserMessage.includes('check replies') || currentUserMessage.includes('check responses') || currentUserMessage.includes('see replies')) {
+              const mentionsResult = await twitterClient.getMentions();
+              if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions.length > 0) {
+                const recentMentions = mentionsResult.mentions.slice(0, 5); // Get last 5 mentions
+                toolResults += `\n\n📱 **Recent Mentions/Replies:**\n`;
+                recentMentions.forEach((mention, index) => {
+                  toolResults += `\n${index + 1}. **@${mention.author_id}**: "${mention.text.substring(0, 50)}${mention.text.length > 50 ? '...' : ''}"\n   [View Tweet](https://x.com/seishinzinshape/status/${mention.id})`;
+                });
+                toolResults += `\n\n💡 **Want me to reply to any of these?** Just say "reply to mention #1" or "respond to the first mention"`;
+              } else {
+                toolResults += `\n\n📱 **No recent mentions found.**`;
+              }
+            }
+            
+            // Auto-reply to first 3-5 people who reply to AI's tweets
+            if (currentUserMessage.includes('auto reply') || currentUserMessage.includes('reply to first') || currentUserMessage.includes('reply to all')) {
+              const mentionsResult = await twitterClient.getMentions();
+              if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions.length > 0) {
+                const maxReplies = currentUserMessage.includes('5') ? 5 : 3; // Default to 3, or 5 if specified
+                const mentionsToReply = mentionsResult.mentions.slice(0, maxReplies);
+                
+                toolResults += `\n\n🤖 **Auto-replying to first ${maxReplies} mentions...**\n`;
+                
+                for (let i = 0; i < mentionsToReply.length; i++) {
+                  const mention = mentionsToReply[i];
+                  
+                  // Generate contextual reply based on the mention content
+                  let replyContent = '';
+                  const mentionText = mention.text.toLowerCase();
+                  
+                  if (mentionText.includes('thanks') || mentionText.includes('thank')) {
+                    replyContent = `You're welcome! 🙏 Always happy to share NFT alpha! 🚀`;
+                  } else if (mentionText.includes('great') || mentionText.includes('awesome') || mentionText.includes('love')) {
+                    replyContent = `Thanks! 🙌 Glad you found it helpful! More alpha coming soon! 🔥`;
+                  } else if (mentionText.includes('floor') || mentionText.includes('price')) {
+                    replyContent = `Floor watching is key! 📊 Keep an eye on those movements! 👀`;
+                  } else if (mentionText.includes('mint') || mentionText.includes('minting')) {
+                    replyContent = `Mint season is here! 🎨 Good luck with your mints! 💎`;
+                  } else if (mentionText.includes('nft') || mentionText.includes('collection')) {
+                    replyContent = `NFTs are the future! 🚀 Keep building that collection! 💪`;
+                  } else if (mentionText.includes('gasback') || mentionText.includes('rewards')) {
+                    replyContent = `Gasback rewards are stacking up! 💰 Keep earning! 📈`;
+                  } else if (mentionText.includes('?') || mentionText.includes('question')) {
+                    replyContent = `Great question! 🤔 Let me know if you need more details! 💡`;
+                  } else {
+                    // Default friendly reply
+                    replyContent = `Thanks for engaging! 🙏 Love the NFT community energy! 🔥`;
+                  }
+                  
+                  // Ensure reply is under 280 characters
+                  if (replyContent.length > 280) {
+                    replyContent = replyContent.substring(0, 280);
+                  }
+                  
+                  const replyResult = await twitterClient.replyToTweet(mention.id, replyContent);
+                  if (replyResult.success) {
+                    toolResults += `\n✅ **Replied to @${mention.author_id}**: "${replyContent}"\n   [View Reply](https://x.com/seishinzinshape/status/${replyResult.tweetId})`;
+                  } else {
+                    toolResults += `\n❌ **Failed to reply to @${mention.author_id}**: ${replyResult.error}`;
+                  }
+                  
+                  // Add small delay between replies to avoid rate limiting
+                  if (i < mentionsToReply.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                }
+                
+                toolResults += `\n\n🎯 **Auto-reply complete!** Replied to ${mentionsToReply.length} mentions.`;
+              } else {
+                toolResults += `\n\n📱 **No mentions found to reply to.**`;
+              }
+            }
+            
             if (currentUserMessage.includes('reply') || currentUserMessage.includes('respond to')) {
               let tweetIdToReplyTo: string | null = tweetIdInMessage;
               
               if (tweetIdToReplyTo) {
                 console.log('Extracted tweet ID:', tweetIdToReplyTo);
+              }
+              
+              // Check if user wants to reply to a specific mention by number
+              const mentionNumberMatch = currentUserMessage.match(/mention #?(\d+)/i);
+              if (mentionNumberMatch) {
+                const mentionIndex = parseInt(mentionNumberMatch[1]) - 1; // Convert to 0-based index
+                const mentionsResult = await twitterClient.getMentions();
+                if (mentionsResult.success && mentionsResult.mentions && Array.isArray(mentionsResult.mentions) && mentionsResult.mentions[mentionIndex]) {
+                  tweetIdToReplyTo = mentionsResult.mentions[mentionIndex].id;
+                  console.log(`Replying to mention #${mentionIndex + 1}:`, tweetIdToReplyTo);
+                }
               }
               
               // If no specific tweet ID, try to get latest mention

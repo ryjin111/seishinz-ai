@@ -164,18 +164,25 @@ export default function SeishinZAgent() {
       color: 'from-purple-500 to-indigo-600',
     },
     {
-      title: 'Reply to Mentions',
-      description: 'Check and reply to mentions',
-      action: 'Check recent mentions and reply to any relevant ones',
+      title: 'Auto-Reply to First 3',
+      description: 'Reply to first 3 people who commented',
+      action: 'Auto reply to first 3 mentions with contextual responses',
       icon: MessageCircle,
       color: 'from-blue-500 to-cyan-600',
     },
     {
-      title: 'Post Trending Topics',
-      description: 'Post about crypto trends',
-      action: 'Post a tweet about current crypto trends on X',
-      icon: Twitter,
-      color: 'from-orange-500 to-red-600',
+      title: 'Auto-Reply to First 5',
+      description: 'Reply to first 5 people who commented',
+      action: 'Auto reply to first 5 mentions with contextual responses',
+      icon: MessageCircle,
+      color: 'from-indigo-500 to-purple-600',
+    },
+    {
+      title: 'Check Replies',
+      description: 'Check recent replies and mentions',
+      action: 'Check replies to see recent mentions and replies to your tweets',
+      icon: MessageCircle,
+      color: 'from-teal-500 to-cyan-600',
     },
   ];
 
@@ -200,7 +207,7 @@ export default function SeishinZAgent() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                 <Twitter className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900">SeishinZ AI</h1>
+              <h1 className="text-lg font-bold text-gray-900">SeishinZ Agent</h1>
             </div>
           </div>
 
@@ -274,7 +281,7 @@ export default function SeishinZAgent() {
                         <Twitter className="w-8 h-8 text-white" />
                       </div>
                       <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                        Welcome to SeishinZ AI
+                        Welcome to SeishinZ Agent
                       </h2>
                       <p className="text-gray-600 max-w-md">
                         Your NFT-focused AI assistant. Ask me to post tweets, check mentions, or get Shape Network data.
@@ -306,7 +313,7 @@ export default function SeishinZAgent() {
                              <div className="flex-1 min-w-0">
                                <div className="flex items-center gap-2 mb-2">
                                  <span className="font-medium text-gray-900">
-                                   {message.role === 'user' ? 'You' : 'SeishinZ AI'}
+                                   {message.role === 'user' ? 'You' : 'SeishinZ Agent'}
                                  </span>
                                  <span className="text-xs text-gray-500">
                                    {formatTime(message.timestamp)}
@@ -346,7 +353,7 @@ export default function SeishinZAgent() {
                              <div className="flex-1">
                                <div className="flex items-center gap-2 mb-2">
                                  <span className="font-medium text-gray-900">
-                                   SeishinZ AI
+                                   SeishinZ Agent
                                  </span>
                                  <span className="text-xs text-gray-500">
                                    {formatTime(new Date())}
@@ -380,7 +387,7 @@ export default function SeishinZAgent() {
                         value={input}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
-                        placeholder="Message SeishinZ AI..."
+                        placeholder="Message SeishinZ Agent..."
                         className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white text-gray-900 placeholder-gray-500"
                         rows={1}
                         disabled={isLoading}
