@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
               }
             }
             
-            // Send the enhanced response
+            // Send the enhanced response - clean format
             const finalContent = response.content + additionalData;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: finalContent })}\n\n`));
           }

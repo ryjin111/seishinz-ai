@@ -1,16 +1,125 @@
 'use client';
 
-import { useChat } from 'ai/react';
 import { Send, Twitter, TrendingUp, MessageCircle, BarChart3 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PersonalityDisplay from '@/components/PersonalityDisplay';
 
-export default function SeishinZAgent() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/agent',
-  });
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
 
+export default function SeishinZAgent() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: '',
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              setIsLoading(false);
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                setMessages(prev => 
+                  prev.map(msg => 
+                    msg.id === assistantMessage.id 
+                      ? { ...msg, content: parsed.content }
+                      : msg
+                  )
+                );
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+        },
+      ]);
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
 
   const quickActions = [
     {
@@ -40,7 +149,7 @@ export default function SeishinZAgent() {
   ];
 
   const handleQuickAction = (action: string) => {
-    handleInputChange({ target: { value: action } } as any);
+    setInput(action);
   };
 
   return (
@@ -124,6 +233,7 @@ export default function SeishinZAgent() {
                       </div>
                     </div>
                   ))}
+                  <div ref={messagesEndRef} />
                   {isLoading && (
                     <div className="flex justify-start">
                       <div className="bg-gray-100 text-gray-900 rounded-lg px-4 py-2">
@@ -179,19 +289,19 @@ export default function SeishinZAgent() {
                 <h3 className="text-lg font-semibold mb-3">Example Prompts</h3>
                 <div className="space-y-2 text-sm">
                   <button
-                    onClick={() => handleInputChange({ target: { value: "Post a tweet about the latest Gasback rewards on Shape Network" } } as any)}
+                    onClick={() => setInput("Post a tweet about the latest Gasback rewards on Shape Network")}
                     className="text-left text-blue-600 hover:text-blue-800 block"
                   >
                     "Post a tweet about the latest Gasback rewards"
                   </button>
                   <button
-                    onClick={() => handleInputChange({ target: { value: "Check recent mentions and reply to any relevant ones" } } as any)}
+                    onClick={() => setInput("Check recent mentions and reply to any relevant ones")}
                     className="text-left text-blue-600 hover:text-blue-800 block"
                   >
                     "Check and reply to mentions"
                   </button>
                   <button
-                    onClick={() => handleInputChange({ target: { value: "Get trending NFT collections from Shape Network and create a tweet" } } as any)}
+                    onClick={() => setInput("Get trending NFT collections from Shape Network and create a tweet")}
                     className="text-left text-blue-600 hover:text-blue-800 block"
                   >
                     "Share trending NFT collections"
