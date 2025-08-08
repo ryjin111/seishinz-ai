@@ -89,7 +89,7 @@ export class SeishinZTwitterClient {
   async getMentions() {
     try {
       const mentions = await this.client.v2.userMentionTimeline(process.env.TWITTER_USER_ID!);
-      return { success: true, mentions: mentions.data };
+      return { success: true, mentions: mentions.data || [] };
     } catch (error) {
       console.error('Error getting mentions:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
