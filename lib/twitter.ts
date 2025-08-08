@@ -1,6 +1,12 @@
 import { TwitterApi } from 'twitter-api-v2';
 
 // Twitter API client for SeishinZ account
+export interface MentionsResult {
+  success: boolean;
+  mentions?: any[];
+  error?: string;
+}
+
 export class SeishinZTwitterClient {
   private client: TwitterApi;
 
@@ -86,7 +92,7 @@ export class SeishinZTwitterClient {
   }
 
   // Get mentions
-  async getMentions() {
+  async getMentions(): Promise<MentionsResult> {
     try {
       const mentions = await this.client.v2.userMentionTimeline(process.env.TWITTER_USER_ID!);
       return { success: true, mentions: mentions.data || [] };

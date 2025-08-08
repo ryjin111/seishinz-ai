@@ -1,6 +1,6 @@
 // AI-Powered Scheduler for SeishinZ Agent
 import { shinZDB } from './database';
-import { SeishinZTwitterClient } from './twitter';
+import { SeishinZTwitterClient, MentionsResult } from './twitter';
 import { accessCodeManager } from './access-codes';
 
 export interface ScheduledTask {
@@ -227,11 +227,12 @@ export class AIScheduler {
 
   private async executeCommunityEngagement(): Promise<void> {
     const twitterClient = new SeishinZTwitterClient();
-    const mentions = await twitterClient.getMentions();
+    const mentions: MentionsResult = await twitterClient.getMentions();
     
-    if (mentions.success && mentions.mentions && mentions.mentions.length > 0) {
+    const mentionList: any[] = (mentions.mentions as any[]) ?? [];
+    if (mentions.success && mentionList.length > 0) {
       // Reply to the first few mentions
-      const recentMentions = mentions.mentions.slice(0, 3);
+      const recentMentions = mentionList.slice(0, 3);
       
       for (const mention of recentMentions) {
         const reply = `Thanks for the mention! 🙏 Check out seishinz.xyz for the latest updates! 🚀`;
