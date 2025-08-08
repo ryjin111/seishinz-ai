@@ -94,6 +94,27 @@ function extractTweetId(message: string): string | null {
 }
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const testCode = searchParams.get('testCode');
+  
+  if (testCode) {
+    const success = accessCodeManager.setAccessCode(testCode);
+    const currentAccess = accessCodeManager.getCurrentAccessCode();
+    const canPost = accessCodeManager.canPerformAction('postTweet');
+    
+    return new Response(JSON.stringify({ 
+      message: 'Access code test',
+      testCode,
+      success,
+      currentAccess,
+      canPost,
+      timestamp: new Date().toISOString()
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  
   return new Response(JSON.stringify({ 
     message: "SeishinZ AI Agent API", 
     status: "running",
@@ -111,7 +132,9 @@ export async function POST(req: NextRequest) {
     
     // Set access code if provided
     if (accessCode) {
-      accessCodeManager.setAccessCode(accessCode);
+      const success = accessCodeManager.setAccessCode(accessCode);
+      console.log('Access code set:', accessCode, 'Success:', success);
+      console.log('Current access code:', accessCodeManager.getCurrentAccessCode());
     }
     
     if (!messages || !Array.isArray(messages)) {
@@ -290,6 +313,10 @@ export async function POST(req: NextRequest) {
             // Check for Twitter posting requests
             if (currentUserMessage.includes('post') && currentUserMessage.includes('tweet')) {
               // Check if user has permission to post tweets
+              console.log('Checking postTweet permission...');
+              console.log('Current access code:', accessCodeManager.getCurrentAccessCode());
+              console.log('Can perform action:', accessCodeManager.canPerformAction('postTweet'));
+              
               if (!accessCodeManager.canPerformAction('postTweet')) {
                 const restrictionMessage = accessCodeManager.getRestrictionMessage();
                 toolResults += `\n\n${restrictionMessage}`;

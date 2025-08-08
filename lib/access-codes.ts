@@ -115,10 +115,14 @@ export class AccessCodeManager {
   }
 
   validateAccessCode(code: string): AccessCode | null {
+    console.log('Validating access code:', code);
+    console.log('Available codes:', Object.keys(ACCESS_CODES));
     const accessCode = ACCESS_CODES[code.toUpperCase()];
+    console.log('Found access code:', accessCode);
     if (accessCode) {
       // Check if code has expired
       if (accessCode.expiresAt && new Date() > accessCode.expiresAt) {
+        console.log('Access code expired');
         return null;
       }
       return accessCode;

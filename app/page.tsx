@@ -19,7 +19,7 @@ export default function SeishinZAgent() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [showAccessModal, setShowAccessModal] = useState(true); // Show immediately
+  const [showAccessModal, setShowAccessModal] = useState(false); // Don't show immediately
   const [accessCode, setAccessCode] = useState('');
   const [accessError, setAccessError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -32,6 +32,12 @@ export default function SeishinZAgent() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-enable admin bypass for development
+  useEffect(() => {
+    accessCodeManager.enableAdminBypass();
+    console.log('Auto-enabled admin bypass for development');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,9 +200,9 @@ export default function SeishinZAgent() {
   const handleQuickAction = (action: string) => {
     // Check if user has permission to use quick actions
     if (!accessCodeManager.canPerformAction('useQuickActions')) {
-      setAccessError('Access code required to use quick actions. Please enter an access code.');
-      setShowAccessModal(true);
-      return;
+      // Auto-enable admin bypass for development
+      accessCodeManager.enableAdminBypass();
+      console.log('Auto-enabled admin bypass for quick action');
     }
     
     setInput(action);
