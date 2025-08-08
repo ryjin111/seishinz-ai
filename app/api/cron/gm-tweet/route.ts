@@ -94,6 +94,7 @@ async function getLastGmDate(): Promise<string | null> {
 async function storeLastGmDate(date: string): Promise<void> {
   try {
     await shinZDB.storeGmTweet({
+      id: Date.now().toString(),
       date,
       timestamp: new Date().toISOString(),
       success: true
