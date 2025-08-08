@@ -56,6 +56,7 @@ export default function SeishinZAgent() {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
+          accessCode: accessCodeManager.getCurrentAccessCode()?.code || '',
         }),
       });
 
@@ -229,6 +230,11 @@ export default function SeishinZAgent() {
     const currentAccess = accessCodeManager.getCurrentAccessCode();
     const usageStats = accessCodeManager.getUsageStats();
     
+    // Check for admin bypass first
+    if (accessCodeManager.isAdminBypassEnabled()) {
+      return { status: 'Admin Bypass', color: 'text-purple-500', icon: Crown };
+    }
+    
     if (!currentAccess) {
       return { status: 'No Access', color: 'text-red-500', icon: Shield };
     }
@@ -274,6 +280,28 @@ export default function SeishinZAgent() {
             Enter Access Code
           </button>
         )}
+        
+        {/* Admin Bypass Toggle */}
+        <div className="pt-2 border-t border-gray-200">
+          <button
+            onClick={() => {
+              if (accessCodeManager.isAdminBypassEnabled()) {
+                accessCodeManager.disableAdminBypass();
+              } else {
+                accessCodeManager.enableAdminBypass();
+              }
+              // Force re-render
+              setMessages(prev => [...prev]);
+            }}
+            className={`w-full text-xs px-2 py-1 rounded transition-colors ${
+              accessCodeManager.isAdminBypassEnabled()
+                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                : 'bg-green-100 text-green-700 hover:bg-green-200'
+            }`}
+          >
+            {accessCodeManager.isAdminBypassEnabled() ? '🔒 Disable Admin' : '🔓 Enable Admin'}
+          </button>
+        </div>
       </div>
     );
   };

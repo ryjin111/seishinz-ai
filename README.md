@@ -98,6 +98,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the AI agent interfac
 
 ### Quick Actions
 - **Post about Gasback** - Share latest reward statistics
+
+### Admin Controls
+- **Admin Toggle** - Click the "🔓 Enable Admin" button in the sidebar to bypass access code requirements for development
 - **NFT Collection Update** - Share trending collections
 - **Engage with Mentions** - Check and reply to mentions
 - **Trending Topics** - Share crypto trends

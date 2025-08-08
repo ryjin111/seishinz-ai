@@ -96,6 +96,7 @@ export const ACCESS_CODES: Record<string, AccessCode> = {
 export class AccessCodeManager {
   private static instance: AccessCodeManager;
   private currentAccessCode: AccessCode | null = null;
+  private adminBypassEnabled: boolean = false;
   private usageStats: {
     tweetsPosted: number;
     repliesSent: number;
@@ -148,6 +149,11 @@ export class AccessCodeManager {
   }
 
   canPerformAction(action: 'postTweet' | 'replyToTweet' | 'autoReply' | 'checkReplies' | 'getData' | 'useQuickActions' | 'useInterface'): boolean {
+    // Admin bypass for development/testing
+    if (this.adminBypassEnabled) {
+      return true;
+    }
+    
     if (!this.currentAccessCode) {
       return false;
     }
@@ -225,7 +231,24 @@ export class AccessCodeManager {
     return Object.keys(ACCESS_CODES);
   }
 
+  enableAdminBypass(): void {
+    this.adminBypassEnabled = true;
+  }
+
+  disableAdminBypass(): void {
+    this.adminBypassEnabled = false;
+  }
+
+  isAdminBypassEnabled(): boolean {
+    return this.adminBypassEnabled;
+  }
+
   getRestrictionMessage(): string {
+    // Check if admin bypass is enabled
+    if (this.isAdminBypassEnabled()) {
+      return '🔓 **Admin Bypass Active**\n\nAll features are enabled for development/testing.';
+    }
+    
     if (!this.currentAccessCode) {
       return '🔒 **Access Required**\n\nPlease enter an access code to use SeishinZ Agent.\n\nContact the administrator for access codes.';
     }
