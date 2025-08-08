@@ -22,10 +22,18 @@ export class SeishinZTwitterClient {
   // Post a tweet
   async postTweet(content: string) {
     try {
-      console.log('Attempting to post tweet:', content.substring(0, 50) + '...');
+      // Sanitize to human style: no emojis, no hashtags, no markdown, clean whitespace
+      let text = content
+        .replace(/\*\*/g, '')
+        .replace(/#\w+/g, '')
+        .replace(/[^\x00-\x7F]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      console.log('Attempting to post tweet:', text.substring(0, 50) + '...');
       console.log('Twitter client initialized:', !!this.client);
       
-      const tweet = await this.client.v2.tweet(content);
+      const tweet = await this.client.v2.tweet(text);
       console.log('Tweet posted successfully:', tweet.data.id);
       return { success: true, tweetId: tweet.data.id, text: tweet.data.text };
     } catch (error) {

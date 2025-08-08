@@ -368,8 +368,15 @@ export async function POST(req: NextRequest) {
                 // Remove any markdown formatting
                 tweetContent = tweetContent.replace(/\*\*/g, '').replace(/\*/g, '');
                 
+                // Strip hashtags and emojis to keep a clean, human tone
+                tweetContent = tweetContent
+                  .replace(/#\w+/g, '')
+                  .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')
+                  .replace(/\s+/g, ' ')
+                  .trim();
+                
                 // Remove any potentially problematic content (but keep quotes)
-                tweetContent = tweetContent.replace(/[^\w\s@#.,!?$%&*()+\-=\[\]{}|\\:";'<>?,.\/]/g, '');
+                tweetContent = tweetContent.replace(/[^\w\s@#.,!?$%&*()+\-=\[\]{}|\\:\";'<>?,.\//]/g, '');
                 
                 // Remove surrounding quotes if they exist
                 tweetContent = tweetContent.replace(/^["']|["']$/g, '');

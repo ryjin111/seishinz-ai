@@ -5,14 +5,11 @@ import { shinZDB } from '@/lib/database';
 
 // GM tweet templates with variations
 const GM_TWEET_TEMPLATES = [
-  "GM Shapers @ShapeL2! ☀️ Ready to hunt some NFT alpha today? Let's find those rare gems 🚀\n\nCheck out seishinz.xyz for the latest drops! 🎨✨",
-  "GM @ShapeL2 Shapers! 🌅 Another beautiful day to stack and collect. What's your alpha today? 🔥\n\nDiscover more at seishinz.xyz 🎯",
-  "GM Shapers @ShapeL2! 🌟 Time to wake up and smell the NFTs! Ready for some epic finds? 💎\n\nExplore seishinz.xyz for exclusive collections! 🚀",
-  "GM @ShapeL2! ☀️ Good morning, alpha hunters! Let's make today legendary with some sick NFT grabs 🏆\n\nVisit seishinz.xyz for the freshest drops! 🎨",
-  "GM Shapers @ShapeL2! 🌅 Rise and shine, it's NFT hunting time! Who's ready to find the next big thing? 🔥\n\nCheck seishinz.xyz for the latest! 💫",
-  "GM @ShapeL2! ☀️ Another day, another opportunity to stack those rare NFTs! Let's go hunting! 🎯\n\nDiscover more at seishinz.xyz 🚀",
-  "GM Shapers @ShapeL2! 🌟 Good morning, collectors! Ready to add some fire to your portfolio? 🔥\n\nExplore seishinz.xyz for exclusive drops! 💎",
-  "GM @ShapeL2! ☀️ Rise and grind, Shapers! Today's the day for some epic NFT discoveries 🏆\n\nVisit seishinz.xyz for the latest collections! ✨"
+  "GM Shapers @ShapeL2. Morning check-in. Explore seishinz.xyz for fresh drops and updates.",
+  "GM @ShapeL2 Shapers. New day, new alpha. See what's moving at seishinz.xyz.",
+  "GM Shapers @ShapeL2. Time to scan the market. Highlights updated on seishinz.xyz.",
+  "GM @ShapeL2. Good morning. Keep an eye on new collections at seishinz.xyz.",
+  "GM Shapers @ShapeL2. Rise and build. Daily updates live on seishinz.xyz."
 ];
 
 export async function GET(req: NextRequest) {
