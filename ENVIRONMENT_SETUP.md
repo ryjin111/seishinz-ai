@@ -31,6 +31,9 @@ REDIS_URL=your_redis_url_here
 # Development settings
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Cron Job Security (Optional)
+CRON_SECRET=your_cron_secret_here
 ```
 
 ## 🔑 API Key Setup Instructions
@@ -154,6 +157,7 @@ After setting up your environment variables:
 | `REDIS_URL` | ❌ | Redis URL for caching |
 | `NODE_ENV` | ❌ | Environment (development/production) |
 | `NEXT_PUBLIC_APP_URL` | ❌ | Public app URL |
+| `CRON_SECRET` | ❌ | Secret key for cron job authentication |
 
 ## 🎯 Next Steps
 

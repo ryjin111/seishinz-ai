@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/gm-tweet",
+      "schedule": "0 9 * * *"
+    }
+  ]
+} 

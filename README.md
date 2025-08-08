@@ -97,13 +97,21 @@ Open [http://localhost:3000](http://localhost:3000) to see the AI agent interfac
 - **Data-driven content** - "Get NFT analytics and create a tweet"
 
 ### Quick Actions
-- **Post about Gasback** - Share latest reward statistics
+- **Post GM Tweet** - Post daily GM tweet with seishinz.xyz
+- **Post Gasback Tweet** - Share latest reward statistics
+- **Post NFT Update** - Share trending collections
+- **Auto-Reply to Mentions** - Reply to recent mentions
+- **Check Replies** - View recent mentions and replies
 
 ### Admin Controls
 - **Admin Toggle** - Click the "🔓 Enable Admin" button in the sidebar to bypass access code requirements for development
-- **NFT Collection Update** - Share trending collections
-- **Engage with Mentions** - Check and reply to mentions
-- **Trending Topics** - Share crypto trends
+
+### Automated Features
+- **🤖 AI Scheduler** - Intelligent automation system that handles all daily tasks
+- **Daily GM Tweets** - Automatically posts GM tweets every day at 9 AM with @ShapeL2 and seishinz.xyz
+- **Weekly Gasback Updates** - Posts Gasback rewards updates every Monday at 10 AM
+- **Daily NFT Updates** - Posts NFT collection analytics daily at 2 PM
+- **Community Engagement** - Automatically replies to mentions every 4 hours
 
 ## 🔧 API Endpoints
 
@@ -112,6 +120,15 @@ Main AI agent endpoint that handles:
 - X account operations (post, reply, like, retweet)
 - Shape Network data queries
 - AI reasoning and content generation
+
+### `/api/ai-scheduler`
+AI-powered scheduler endpoint that handles:
+- Start/stop automated tasks
+- Schedule optimization
+- Task status monitoring
+
+### `/api/cron/gm-tweet`
+Daily GM tweet endpoint for manual triggering
 
 ## 📁 Project Structure
 

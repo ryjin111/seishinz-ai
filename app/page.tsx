@@ -33,10 +33,23 @@ export default function SeishinZAgent() {
     scrollToBottom();
   }, [messages]);
 
-  // Auto-enable admin bypass for development
+  // Auto-enable admin bypass and start AI scheduler for development
   useEffect(() => {
     accessCodeManager.enableAdminBypass();
     console.log('Auto-enabled admin bypass for development');
+    
+    // Start AI scheduler automatically
+    fetch('/api/ai-scheduler', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'start' }),
+    }).then(() => {
+      console.log('AI Scheduler started automatically');
+    }).catch((error) => {
+      console.error('Failed to start AI scheduler:', error);
+    });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -161,6 +174,20 @@ export default function SeishinZAgent() {
 
   const quickActions = [
     {
+      title: '🤖 Start AI Scheduler',
+      description: 'Start automated daily tasks',
+      action: 'Start the AI scheduler for automated daily GM tweets and engagement',
+      icon: TrendingUp,
+      color: 'from-purple-500 to-pink-600',
+    },
+    {
+      title: 'Post GM Tweet',
+      description: 'Post daily GM tweet with seishinz.xyz',
+      action: 'Post a GM tweet to @ShapeL2 Shapers with seishinz.xyz website',
+      icon: TrendingUp,
+      color: 'from-yellow-500 to-orange-600',
+    },
+    {
       title: 'Post Gasback Tweet',
       description: 'Post a tweet about Gasback rewards',
       action: 'Post a tweet about the latest Gasback rewards on Shape Network',
@@ -205,9 +232,96 @@ export default function SeishinZAgent() {
       console.log('Auto-enabled admin bypass for quick action');
     }
     
+    // Special handling for AI Scheduler
+    if (action.includes('AI scheduler')) {
+      handleAiScheduler();
+      return;
+    }
+    
+    // Special handling for GM tweet
+    if (action.includes('GM tweet')) {
+      handleGmTweet();
+      return;
+    }
+    
     setInput(action);
     setActiveTab('chat');
     setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const handleAiScheduler = async () => {
+    try {
+      const response = await fetch('/api/ai-scheduler', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'start' }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `🤖 **AI Scheduler Started!**\n\n✅ Automated tasks are now running:\n\n• Daily GM tweets at 9 AM\n• Weekly Gasback updates on Mondays\n• Daily NFT collection updates at 2 PM\n• Community engagement every 4 hours\n\nThe AI will now handle all your daily posting automatically! 🚀`,
+          timestamp: new Date(),
+        }]);
+      } else {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `❌ **Failed to start AI scheduler:** ${result.error}`,
+          timestamp: new Date(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error starting AI scheduler:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: '❌ **Error starting AI scheduler:** Please try again.',
+        timestamp: new Date(),
+      }]);
+    }
+  };
+
+  const handleGmTweet = async () => {
+    try {
+      const response = await fetch('/api/cron/gm-tweet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `✅ **GM Tweet Posted Successfully!**\n\n${result.content}\n\nTweet ID: ${result.tweetId}\nView: https://x.com/seishinzinshape/status/${result.tweetId}`,
+          timestamp: new Date(),
+        }]);
+      } else {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `❌ **Failed to post GM tweet:** ${result.error}`,
+          timestamp: new Date(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error posting GM tweet:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: '❌ **Error posting GM tweet:** Please try again.',
+        timestamp: new Date(),
+      }]);
+    }
   };
 
   const handleAccessCodeSubmit = (e: React.FormEvent) => {

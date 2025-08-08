@@ -97,6 +97,16 @@ export interface TweetPerformance {
   created_at: Date;
 }
 
+export interface GmTweet {
+  id: string;
+  date: string;
+  timestamp: string;
+  success: boolean;
+  tweet_id?: string;
+  content?: string;
+  error?: string;
+}
+
 class ShinZDatabase {
   private supabase: any;
   private isLocal: boolean;
@@ -107,6 +117,7 @@ class ShinZDatabase {
     members: Map<string, CommunityMember>;
     memories: Map<string, LearningMemory>;
     tweets: TweetPerformance[];
+    gmTweets: GmTweet[];
   };
 
   constructor() {
@@ -130,7 +141,8 @@ class ShinZDatabase {
       insights: [],
       members: new Map(),
       memories: new Map(),
-      tweets: []
+      tweets: [],
+      gmTweets: []
     };
   }
 
@@ -338,6 +350,50 @@ class ShinZDatabase {
     };
   }
 
+  // GM Tweet Management
+  async storeGmTweet(gmTweet: GmTweet): Promise<void> {
+    if (this.isLocal) {
+      this.localData.gmTweets.push(gmTweet);
+      this.saveToLocalStorage('gmTweets', this.localData.gmTweets);
+    } else {
+      await this.supabase
+        .from('gm_tweets')
+        .insert(gmTweet);
+    }
+  }
+
+  async getLastGmTweet(): Promise<GmTweet | null> {
+    if (this.isLocal) {
+      return this.localData.gmTweets
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0] || null;
+    } else {
+      const { data, error } = await this.supabase
+        .from('gm_tweets')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .single();
+      
+      return error ? null : data;
+    }
+  }
+
+  async getGmTweetHistory(limit: number = 30): Promise<GmTweet[]> {
+    if (this.isLocal) {
+      return this.localData.gmTweets
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, limit);
+    } else {
+      const { data, error } = await this.supabase
+        .from('gm_tweets')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+      
+      return error ? [] : data;
+    }
+  }
+
   private calculateAverageEngagement(interactions: UserInteraction[]): number {
     if (interactions.length === 0) return 0;
     
@@ -407,6 +463,7 @@ class ShinZDatabase {
       const members = this.loadFromLocalStorage('members');
       const memories = this.loadFromLocalStorage('memories');
       const tweets = this.loadFromLocalStorage('tweets');
+      const gmTweets = this.loadFromLocalStorage('gmTweets');
 
       if (collections) {
         collections.forEach((c: NFTCollection) => {
@@ -426,6 +483,7 @@ class ShinZDatabase {
         });
       }
       if (tweets) this.localData.tweets = tweets;
+      if (gmTweets) this.localData.gmTweets = gmTweets;
     }
   }
 }
