@@ -1,90 +1,77 @@
-import crypto from 'crypto'
+import { TwitterApi } from 'twitter-api-v2'
+import { splitIntoTweets } from './util'
 
-const API_KEY = process.env.TWITTER_API_KEY || ''
-const API_SECRET = process.env.TWITTER_API_SECRET || ''
-const ACCESS_TOKEN = process.env.TWITTER_ACCESS_TOKEN || ''
-const ACCESS_SECRET = process.env.TWITTER_ACCESS_SECRET || ''
+const appKey = process.env.TWITTER_API_KEY || ''
+const appSecret = process.env.TWITTER_API_SECRET || ''
+const accessToken = process.env.TWITTER_ACCESS_TOKEN || ''
+const accessSecret = process.env.TWITTER_ACCESS_SECRET || process.env.TWITTER_ACCESS_TOKEN_SECRET || ''
 
-const TW_BASE = 'https://api.twitter.com/1.1'
-
-function nonce(length = 32) {
-	return crypto.randomBytes(length).toString('hex')
+function assertCreds() {
+	if (!appKey || !appSecret || !accessToken || !accessSecret) {
+		throw new Error('Twitter credentials missing (check TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET/TWITTER_ACCESS_TOKEN_SECRET)')
+	}
 }
 
-function percentEncode(str: string) {
-	return encodeURIComponent(str)
-		.replace(/!/g, '%21')
-		.replace(/\*/g, '%2A')
-		.replace(/\(/g, '%28')
-		.replace(/\)/g, '%29')
+function client() {
+	assertCreds()
+	return new TwitterApi({ appKey, appSecret, accessToken, accessSecret })
 }
 
-function signRequest(method: string, url: string, params: Record<string, string>) {
-	const baseParams: Record<string, string> = {
-		oauth_consumer_key: API_KEY,
-		oauth_nonce: nonce(16),
-		oauth_signature_method: 'HMAC-SHA1',
-		oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-		oauth_token: ACCESS_TOKEN,
-		oauth_version: '1.0',
-	}
-	const allParams = { ...baseParams, ...params }
-	const paramString = Object.keys(allParams)
-		.sort()
-		.map((k) => `${percentEncode(k)}=${percentEncode(allParams[k])}`)
-		.join('&')
-	const baseString = [method.toUpperCase(), percentEncode(url), percentEncode(paramString)].join('&')
-	const signingKey = `${percentEncode(API_SECRET)}&${percentEncode(ACCESS_SECRET)}`
-	const signature = crypto.createHmac('sha1', signingKey).update(baseString).digest('base64')
-	const oauthHeader =
-		'OAuth ' +
-		Object.keys(baseParams)
-			.sort()
-			.map((k) => `${percentEncode(k)}="${percentEncode(baseParams[k])}"`)
-			.concat([`oauth_signature="${percentEncode(signature)}"`])
-			.join(', ')
-	return oauthHeader
-}
-
-async function twFetch<T>(method: 'GET' | 'POST', path: string, params: Record<string, string>): Promise<T> {
-	if (!API_KEY || !API_SECRET || !ACCESS_TOKEN || !ACCESS_SECRET) {
-		throw new Error('Twitter credentials missing')
-	}
-	const url = `${TW_BASE}${path}`
-	const headers: Record<string, string> = {
-		Authorization: signRequest(method, url, params),
-		'Content-Type': 'application/x-www-form-urlencoded',
-	}
-	const body = method === 'POST' ? new URLSearchParams(params).toString() : undefined
-	const qs = method === 'GET' ? `?${new URLSearchParams(params).toString()}` : ''
-	const res = await fetch(url + qs, { method, headers, body })
-	if (!res.ok) {
-		const text = await res.text()
-		throw new Error(`Twitter API ${res.status}: ${text}`)
-	}
-	return res.json() as Promise<T>
+function sanitize(text: string): string {
+	return text
+		.replace(/\*\*/g, '')
+		.replace(/\s+/g, ' ')
+		.trim()
 }
 
 export async function postTweet(status: string, inReplyToId?: string) {
-	const params: Record<string, string> = { status }
-	if (inReplyToId) {
-		params['in_reply_to_status_id'] = inReplyToId
-		params['auto_populate_reply_metadata'] = 'true'
+	const c = client()
+	const text = sanitize(status)
+	const maxLen = Math.max(1, Number(process.env.TWEET_MAX_LEN || '280'))
+
+	if (text.length <= maxLen) {
+		if (inReplyToId) {
+			const r = await c.v2.reply(text, inReplyToId)
+			return { id: r.data.id, text: r.data.text }
+		}
+		const t = await c.v2.tweet(text)
+		return { id: t.data.id, text: t.data.text }
 	}
-	return twFetch('POST', '/statuses/update.json', params)
+
+	// Long content: post as a thread
+	const parts = splitIntoTweets(text, maxLen)
+	let previousId: string | undefined = inReplyToId
+	let firstText = parts[0]
+	for (let i = 0; i < parts.length; i++) {
+		if (i === 0 && !previousId) {
+			const t = await c.v2.tweet(parts[i])
+			previousId = t.data.id
+			firstText = t.data.text
+			continue
+		}
+		const r = await c.v2.reply(parts[i], previousId!)
+		previousId = r.data.id
+	}
+	return { id: previousId!, text: firstText, parts: parts.length }
 }
 
 export type Mention = { id: string; text: string; user: { screen_name: string } }
 
 export async function fetchMentions(count = 10, sinceId?: string): Promise<Mention[]> {
-	const params: Record<string, string> = { count: String(count), tweet_mode: 'extended' }
-	if (sinceId) params.since_id = sinceId
-	const raw = await twFetch<any[]>('GET', '/statuses/mentions_timeline.json', params)
-	return raw.map((t) => ({ id: t.id_str, text: t.full_text || t.text, user: { screen_name: t.user?.screen_name } }))
+	const c = client()
+	const userId = process.env.TWITTER_USER_ID
+	if (!userId) throw new Error('TWITTER_USER_ID is required to fetch mentions with v2 API')
+	const res = await c.v2.userMentionTimeline(userId, { max_results: Math.min(count, 100), 'tweet.fields': ['text','author_id'] })
+	const data = res.data?.data || []
+	return data.map((t: any) => ({ id: t.id, text: t.text, user: { screen_name: '' } }))
 }
 
 export async function fetchUserTimeline(screenName: string, count = 5): Promise<string[]> {
-	const params: Record<string, string> = { screen_name: screenName, count: String(count), tweet_mode: 'extended', exclude_replies: 'true', include_rts: 'false' }
-	const raw = await twFetch<any[]>('GET', '/statuses/user_timeline.json', params)
-	return raw.map((t) => t.full_text || t.text).filter(Boolean)
+	const c = client()
+	// Resolve screen name to user id
+	const user = await c.v2.userByUsername(screenName)
+	const userId = user.data?.id
+	if (!userId) return []
+	const tl = await c.v2.userTimeline(userId, { max_results: Math.min(count, 100), exclude: ['replies','retweets'] })
+	return (tl.data?.data || []).map((t: any) => t.text)
 } 
