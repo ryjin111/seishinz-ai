@@ -1,8 +1,6 @@
 import OpenAI from 'openai'
 import { seishinzCharacter } from './character'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 const AI_PROVIDER = (process.env.AI_PROVIDER || '').toLowerCase()
 const USE_DEEPSEEK = AI_PROVIDER === 'deepseek' || (!!process.env.DEEPSEEK_API_KEY && !process.env.OPENAI_API_KEY)
 
@@ -28,7 +26,10 @@ export async function generateTweetContent(input: {
 }
 
 async function openaiChat({ system, user }: { system: string; user: string }): Promise<string> {
+	const apiKey = process.env.OPENAI_API_KEY
+	if (!apiKey) throw new Error('OPENAI_API_KEY is not set')
 	const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+	const openai = new OpenAI({ apiKey })
 	const completion = await openai.chat.completions.create({
 		model,
 		messages: [
