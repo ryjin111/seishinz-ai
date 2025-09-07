@@ -1,8 +1,7 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/gm-tweet",
-      "schedule": "0 9 * * *"
-    }
+    { "path": "/api/cron/tweet-hourly", "schedule": "0 * * * *" },
+    { "path": "/api/cron/reply-mentions", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/analysis", "schedule": "15 */6 * * *" }
   ]
 } 

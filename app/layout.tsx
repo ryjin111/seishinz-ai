@@ -1,26 +1,17 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
+import type { ReactNode } from 'react'
 
-const inter = Inter({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-  title: 'SeishinZ X AI Agent',
-  description: 'AI-powered X (Twitter) account management for SeishinZ',
+export const metadata = {
+	title: 'SeishinZ AI',
+	description: 'Autonomous Shape Chain agent',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          {children}
-        </div>
-      </body>
-    </html>
-  )
+export default function RootLayout({ children }: { children: ReactNode }) {
+	return (
+		<html lang="en">
+			<body className="min-h-screen antialiased bg-white text-zinc-900">
+				{children}
+			</body>
+		</html>
+	)
 } 

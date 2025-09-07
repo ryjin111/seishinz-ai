@@ -1,137 +1,90 @@
-import { TwitterApi } from 'twitter-api-v2';
+import crypto from 'crypto'
 
-// Twitter API client for SeishinZ account
-export interface MentionsResult {
-  success: boolean;
-  mentions?: any[];
-  error?: string;
+const API_KEY = process.env.TWITTER_API_KEY || ''
+const API_SECRET = process.env.TWITTER_API_SECRET || ''
+const ACCESS_TOKEN = process.env.TWITTER_ACCESS_TOKEN || ''
+const ACCESS_SECRET = process.env.TWITTER_ACCESS_SECRET || ''
+
+const TW_BASE = 'https://api.twitter.com/1.1'
+
+function nonce(length = 32) {
+	return crypto.randomBytes(length).toString('hex')
 }
 
-export class SeishinZTwitterClient {
-  private client: TwitterApi;
+function percentEncode(str: string) {
+	return encodeURIComponent(str)
+		.replace(/!/g, '%21')
+		.replace(/\*/g, '%2A')
+		.replace(/\(/g, '%28')
+		.replace(/\)/g, '%29')
+}
 
-  constructor() {
-    this.client = new TwitterApi({
-      appKey: process.env.TWITTER_API_KEY!,
-      appSecret: process.env.TWITTER_API_SECRET!,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN!,
-      accessSecret: process.env.TWITTER_ACCESS_SECRET!,
-    });
-  }
+function signRequest(method: string, url: string, params: Record<string, string>) {
+	const baseParams: Record<string, string> = {
+		oauth_consumer_key: API_KEY,
+		oauth_nonce: nonce(16),
+		oauth_signature_method: 'HMAC-SHA1',
+		oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+		oauth_token: ACCESS_TOKEN,
+		oauth_version: '1.0',
+	}
+	const allParams = { ...baseParams, ...params }
+	const paramString = Object.keys(allParams)
+		.sort()
+		.map((k) => `${percentEncode(k)}=${percentEncode(allParams[k])}`)
+		.join('&')
+	const baseString = [method.toUpperCase(), percentEncode(url), percentEncode(paramString)].join('&')
+	const signingKey = `${percentEncode(API_SECRET)}&${percentEncode(ACCESS_SECRET)}`
+	const signature = crypto.createHmac('sha1', signingKey).update(baseString).digest('base64')
+	const oauthHeader =
+		'OAuth ' +
+		Object.keys(baseParams)
+			.sort()
+			.map((k) => `${percentEncode(k)}="${percentEncode(baseParams[k])}"`)
+			.concat([`oauth_signature="${percentEncode(signature)}"`])
+			.join(', ')
+	return oauthHeader
+}
 
-  // Post a tweet
-  async postTweet(content: string) {
-    try {
-      // Sanitize to human style: no emojis, no hashtags, no markdown, clean whitespace
-      let text = content
-        .replace(/\*\*/g, '')
-        .replace(/#\w+/g, '')
-        .replace(/[^\x00-\x7F]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+async function twFetch<T>(method: 'GET' | 'POST', path: string, params: Record<string, string>): Promise<T> {
+	if (!API_KEY || !API_SECRET || !ACCESS_TOKEN || !ACCESS_SECRET) {
+		throw new Error('Twitter credentials missing')
+	}
+	const url = `${TW_BASE}${path}`
+	const headers: Record<string, string> = {
+		Authorization: signRequest(method, url, params),
+		'Content-Type': 'application/x-www-form-urlencoded',
+	}
+	const body = method === 'POST' ? new URLSearchParams(params).toString() : undefined
+	const qs = method === 'GET' ? `?${new URLSearchParams(params).toString()}` : ''
+	const res = await fetch(url + qs, { method, headers, body })
+	if (!res.ok) {
+		const text = await res.text()
+		throw new Error(`Twitter API ${res.status}: ${text}`)
+	}
+	return res.json() as Promise<T>
+}
 
-      console.log('Attempting to post tweet:', text.substring(0, 50) + '...');
-      console.log('Twitter client initialized:', !!this.client);
-      
-      const tweet = await this.client.v2.tweet(text);
-      console.log('Tweet posted successfully:', tweet.data.id);
-      return { success: true, tweetId: tweet.data.id, text: tweet.data.text };
-    } catch (error) {
-      console.error('Error posting tweet:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        code: (error as any)?.code,
-        status: (error as any)?.status,
-        data: (error as any)?.data
-      });
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        details: (error as any)?.data || error
-      };
-    }
-  }
+export async function postTweet(status: string, inReplyToId?: string) {
+	const params: Record<string, string> = { status }
+	if (inReplyToId) {
+		params['in_reply_to_status_id'] = inReplyToId
+		params['auto_populate_reply_metadata'] = 'true'
+	}
+	return twFetch('POST', '/statuses/update.json', params)
+}
 
-  // Reply to a tweet
-  async replyToTweet(tweetId: string, content: string) {
-    try {
-      console.log('Attempting to reply to tweet:', tweetId);
-      console.log('Reply content:', content.substring(0, 50) + '...');
-      
-      const reply = await this.client.v2.reply(content, tweetId);
-      console.log('Reply posted successfully:', reply.data.id);
-      return { success: true, tweetId: reply.data.id, text: reply.data.text };
-    } catch (error) {
-      console.error('Error replying to tweet:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        code: (error as any)?.code,
-        status: (error as any)?.status,
-        data: (error as any)?.data
-      });
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        details: (error as any)?.data || error
-      };
-    }
-  }
+export type Mention = { id: string; text: string; user: { screen_name: string } }
 
-  // Like a tweet
-  async likeTweet(tweetId: string) {
-    try {
-      await this.client.v2.like(process.env.TWITTER_USER_ID!, tweetId);
-      return { success: true };
-    } catch (error) {
-      console.error('Error liking tweet:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
+export async function fetchMentions(count = 10, sinceId?: string): Promise<Mention[]> {
+	const params: Record<string, string> = { count: String(count), tweet_mode: 'extended' }
+	if (sinceId) params.since_id = sinceId
+	const raw = await twFetch<any[]>('GET', '/statuses/mentions_timeline.json', params)
+	return raw.map((t) => ({ id: t.id_str, text: t.full_text || t.text, user: { screen_name: t.user?.screen_name } }))
+}
 
-  // Retweet
-  async retweet(tweetId: string) {
-    try {
-      await this.client.v2.retweet(process.env.TWITTER_USER_ID!, tweetId);
-      return { success: true };
-    } catch (error) {
-      console.error('Error retweeting:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Get mentions
-  async getMentions(): Promise<MentionsResult> {
-    try {
-      const mentions = await this.client.v2.userMentionTimeline(process.env.TWITTER_USER_ID!);
-      return { success: true, mentions: mentions.data || [] };
-    } catch (error) {
-      console.error('Error getting mentions:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Get trending topics
-  async getTrendingTopics(woeid: number = 1) { // 1 = worldwide
-    try {
-      const trends = await this.client.v1.trendsByPlace(woeid);
-      return { success: true, trends: trends[0].trends };
-    } catch (error) {
-      console.error('Error getting trends:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Search tweets
-  async searchTweets(query: string, maxResults: number = 10) {
-    try {
-      const tweets = await this.client.v2.search(query, {
-        max_results: maxResults,
-        'tweet.fields': ['author_id', 'created_at', 'public_metrics'],
-      });
-      return { success: true, tweets: tweets.data };
-    } catch (error) {
-      console.error('Error searching tweets:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
+export async function fetchUserTimeline(screenName: string, count = 5): Promise<string[]> {
+	const params: Record<string, string> = { screen_name: screenName, count: String(count), tweet_mode: 'extended', exclude_replies: 'true', include_rts: 'false' }
+	const raw = await twFetch<any[]>('GET', '/statuses/user_timeline.json', params)
+	return raw.map((t) => t.full_text || t.text).filter(Boolean)
 } 

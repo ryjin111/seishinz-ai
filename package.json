@@ -1,7 +1,6 @@
 {
-  "name": "seishinz-ai-agent",
-  "version": "1.0.0",
-  "description": "AI Agent for X (Twitter) interactions with Shape Network integration",
+  "name": "seishinz-ai",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,28 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.53.0",
-    "@tailwindcss/typography": "^0.5.16",
-    "@wagmi/core": "^2.0.0",
-    "ai": "^2.2.0",
-    "autoprefixer": "^10.4.0",
-    "dotenv": "^16.3.0",
-    "lucide-react": "^0.294.0",
-    "next": "14.0.0",
-    "postcss": "^8.4.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "tailwindcss": "^3.3.0",
-    "twitter-api-v2": "^1.15.0",
-    "viem": "^2.0.0",
-    "wagmi": "^2.0.0"
+    "next": "14.2.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "openai": "4.56.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.0",
-    "typescript": "^5"
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.41",
+    "tailwindcss": "3.4.10",
+    "typescript": "5.6.3",
+    "@types/node": "20.12.12",
+    "@types/react": "18.2.66",
+    "@types/react-dom": "18.2.22"
   }
-}
+} 
